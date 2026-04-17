@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View } from "react-native";
 
-export default function HomeScreen() {
+export default function SettingsScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>Home / Receipt History</Text>
-      <Text style={styles.subtext}>(SQLite FlatList goes here)</Text>
+      <Text style={styles.text}>Settings</Text>
+      <Text style={styles.subtext}>(Zustand API Key Input goes here)</Text>
     </View>
   );
 }
