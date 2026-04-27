@@ -10,7 +10,7 @@ export default function RootLayout() {
       />
       <Stack.Screen
         name="review"
-        options={{ presentation: "modal", title: "Review Results  " }}
+        options={{ presentation: "modal", headerShown: false }}
       />
     </Stack>
   );
