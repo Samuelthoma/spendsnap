@@ -1,3 +1,4 @@
+import { CATEGORIES, getCategoryVisuals } from '@/constants/categories';
 import { Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -24,16 +25,6 @@ const DUMMY_RECEIPT = {
     { id: '3', name: 'Beras Premium 5kg', price: '76000', qty: '1' }
   ]
 };
-
-const CATEGORIES = [
-  { label: 'Makanan & Minuman', value: 'Dining', icon: 'restaurant', color: '#F59E0B', bg: '#FEF3C7' },
-  { label: 'Belanja', value: 'Shopping', icon: 'bag-handle', color: '#A855F7', bg: '#F3E8FF' },
-  { label: 'Transportasi', value: 'Transport', icon: 'car', color: '#3B82F6', bg: '#DBEAFE' },
-  { label: 'Bahan Makanan', value: 'Groceries', icon: 'cart', color: '#10B981', bg: '#E1F6EB' },
-  { label: 'Hiburan', value: 'Entertainment', icon: 'film', color: '#6366F1', bg: '#E0E7FF' },
-  { label: 'Kesehatan', value: 'Health', icon: 'medkit', color: '#EF4444', bg: '#FEE2E2' },
-  { label: 'Lainnya', value: 'Lainnya', icon: 'receipt', color: '#6B7280', bg: '#F3F4F6' },
-];
 
 export default function ReviewScreen() {
   const params = useLocalSearchParams();
@@ -89,7 +80,7 @@ export default function ReviewScreen() {
 
   if (!fontsLoaded) return null;
 
-  const selectedCat = CATEGORIES.find(c => c.value === receipt.category) || CATEGORIES[CATEGORIES.length - 1];
+  const selectedCat = getCategoryVisuals(receipt.category)
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>

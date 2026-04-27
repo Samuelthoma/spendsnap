@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
   },
   tabBarLabel: {
     fontFamily: 'Inter_600SemiBold',
-    fontSize: 11,
     marginBottom: Platform.OS === 'ios' ? 0 : 5,
   },
   floatingButton: {

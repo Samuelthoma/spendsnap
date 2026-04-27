@@ -1,11 +1,13 @@
+import { getCategoryVisuals } from '@/constants/categories';
 import { Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, useFonts } from '@expo-google-fonts/inter';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const DUMMY_RECEIPTS = [
-  { id: '1', merchant: 'Grand Lucky', category: 'Groceries', value: 1245000, scan_date: '2026-04-26T10:30:00Z' },
+  { id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', merchant: 'Grand Lucky', category: 'Groceries', value: 1245000, scan_date: '2026-04-26T10:30:00Z' },
   { id: '2', merchant: 'Pertamina', category: 'Transport', value: 450000, scan_date: '2026-04-25T14:15:00Z' },
   { id: '3', merchant: 'Kopi Kenangan', category: 'Dining', value: 85000, scan_date: '2026-04-25T08:45:00Z' },
   { id: '4', merchant: 'Tokopedia', category: 'Shopping', value: 542000, scan_date: '2026-04-24T18:20:00Z' },
@@ -15,42 +17,38 @@ const formatIDR = (value: number) => {
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
-const getCategoryStyle = (category: string) => {
-  switch (category.toLowerCase()) {
-    case 'groceries': return { bg: '#E1F6EB', icon: 'cart', color: '#10B981' };
-    case 'dining': return { bg: '#FEF3C7', icon: 'restaurant', color: '#F59E0B' };
-    case 'transport': return { bg: '#DBEAFE', icon: 'car', color: '#3B82F6' };
-    case 'shopping': return { bg: '#F3E8FF', icon: 'bag-handle', color: '#A855F7' };
-    case 'health': return { bg: '#FEE2E2', icon: 'medkit', color: '#EF4444' };
-    case 'entertainment': return { bg: '#E0E7FF', icon: 'film', color: '#6366F1' };
-    default: return { bg: '#F3F4F6', icon: 'receipt', color: '#6B7280' };
-  }
-};
-
 const ReceiptItem = ({ item }: { item: typeof DUMMY_RECEIPTS[0] }) => {
   const formattedDate = new Date(item.scan_date).toLocaleDateString('id-ID', {
     month: 'short',
     day: 'numeric',
   });
 
-  const visual = getCategoryStyle(item.category);
+  const visual = getCategoryVisuals(item.category);
 
   return (
-    <View style={styles.itemContainer}>
-      <View style={styles.itemLeft}>
-        <View style={[styles.iconContainer, { backgroundColor: visual.bg }]}>
-          <Ionicons name={visual.icon as any} size={22} color={visual.color} />
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={() => router.push({
+        pathname: '/details',
+        params: { id: item.id }
+      })}
+    >
+      <View style={styles.itemContainer}>
+        <View style={styles.itemLeft}>
+          <View style={[styles.iconContainer, { backgroundColor: visual.bg }]}>
+            <Ionicons name={visual.icon as any} size={22} color={visual.color} />
+          </View>
+          <View>
+            <Text style={styles.merchantText}>{item.merchant}</Text>
+            <Text style={styles.categoryText}>{item.category}</Text>
+          </View>
         </View>
-        <View>
-          <Text style={styles.merchantText}>{item.merchant}</Text>
-          <Text style={styles.categoryText}>{item.category}</Text>
+        <View style={styles.itemRight}>
+          <Text style={styles.valueText}>Rp {formatIDR(item.value)}</Text>
+          <Text style={styles.dateText}>{formattedDate}</Text>
         </View>
       </View>
-      <View style={styles.itemRight}>
-        <Text style={styles.valueText}>Rp {formatIDR(item.value)}</Text>
-        <Text style={styles.dateText}>{formattedDate}</Text>
-      </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 

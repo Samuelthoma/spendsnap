@@ -12,6 +12,10 @@ export default function RootLayout() {
         name="review"
         options={{ presentation: "modal", headerShown: false }}
       />
+      <Stack.Screen
+        name="details"
+        options={{ presentation: "modal", headerShown: false }}
+      />
     </Stack>
   );
 }
