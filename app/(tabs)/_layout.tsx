@@ -46,7 +46,7 @@ export default function TabLayout() {
 
       <Pressable
         style={styles.floatingButton}
-        onPress={() => router.push("/review")}
+        onPress={() => router.push("/scanner")}
       >
         <Ionicons name="scan-outline" size={28} color="#FFFFFF" />
       </Pressable>

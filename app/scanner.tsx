@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { GoogleGenAI } from "@google/genai";
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
@@ -112,36 +113,56 @@ export default function ScannerScreen() {
 
 const processWithGemini = async (ocrText: string, key: string) => {
   const prompt = `
-    Extract line items from the provided OCR receipt text. Return ONLY a JSON array of objects. No markdown formatting, no explanations. 
-    Format: [{"merchant": "string", "category": "string", "value": number}]
+    Extract data from the provided OCR receipt text. Return ONLY a valid JSON object. No markdown formatting, no explanations. 
+
+    Format requirement:
+    {
+      "merchant": "string",
+      "category": "string",
+      "totalAmount": number,
+      "date": "YYYY-MM-DDTHH:mm:ss.sssZ",
+      "items": [
+        {
+          "name": "string",
+          "price": number,
+          "qty": number
+        }
+      ]
+    }
     
-    Categorize into one of these: Groceries, Transport, Dining, Shopping, Health, Entertainment. If none fit, use 'Lainnya'.
+    Rules:
+    - 'category' must be exactly one of: Groceries, Transport, Dining, Shopping, Health, Entertainment. If none fit, use 'Lainnya'.
+    - 'totalAmount' should be the final parsed total of the receipt.
+    - 'date' should be an ISO 8601 formatted string. If no exact time is found, default to 12:00:00.000Z.
+    - For 'items', 'price' is the price per single unit, and 'qty' is the quantity purchased.
     
     OCR Text:
     ${ocrText}
   `;
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
+  const ai = new GoogleGenAI({ apiKey: key });
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+      config: {
         responseMimeType: "application/json",
       }
-    })
-  });
+    });
 
-  const data = await response.json();
+    const rawContent = response.text;
 
-  if (!response.ok) {
-    throw new Error(data.error?.message || "Gagal menghubungi AI.");
+    if (!rawContent) {
+      throw new Error("AI tidak mengembalikan teks.");
+    }
+
+    return JSON.parse(rawContent);
+  } catch (error: any) {
+    console.error("Gemini SDK Error:", error);
+    throw new Error(error.message || "Gagal menghubungi AI.");
   }
-
-  const rawContent = data.candidates[0].content.parts[0].text;
-  return JSON.parse(rawContent);
 };
-
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
