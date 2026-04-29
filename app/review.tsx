@@ -1,9 +1,12 @@
 import { CATEGORIES, getCategoryVisuals } from '@/constants/categories';
+import { insertReceiptWithDetails, ReceiptPayload } from '@/db/queries/receipts';
 import { Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   FlatList,
   Modal,
   StyleSheet,
@@ -15,23 +18,13 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const DUMMY_RECEIPT = {
-  merchant: 'Grand Lucky',
-  category: 'Groceries',
-  date: new Date().toISOString(),
-  items: [
-    { id: '1', name: 'Susu UHT 1L', price: '22000', qty: '2' },
-    { id: '2', name: 'Telur Ayam 1kg', price: '35000', qty: '1' },
-    { id: '3', name: 'Beras Premium 5kg', price: '76000', qty: '1' }
-  ]
-};
-
 export default function ReviewScreen() {
   const params = useLocalSearchParams();
 
   const [receipt, setReceipt] = useState({ merchant: '', category: '' });
   const [items, setItems] = useState<any[]>([]);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   let [fontsLoaded] = useFonts({
     Inter_500Medium,
@@ -40,7 +33,7 @@ export default function ReviewScreen() {
   });
 
   useEffect(() => {
-    let dataToLoad = DUMMY_RECEIPT;
+    let dataToLoad;
     if (params.extractedData) {
       try {
         dataToLoad = JSON.parse(params.extractedData as string);
@@ -76,6 +69,46 @@ export default function ReviewScreen() {
 
   const handleRemoveItem = (id: string) => {
     setItems(prev => prev.filter(item => item.id !== id));
+  };
+
+  const handleSaveToDatabase = async () => {
+    if (items.length === 0) {
+      Alert.alert("Validasi", "Minimal harus ada satu rincian item untuk disimpan.");
+      return;
+    }
+    if (!receipt.merchant.trim()) {
+      Alert.alert("Validasi", "Nama merchant tidak boleh kosong.");
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const payload: ReceiptPayload = {
+        merchant: receipt.merchant,
+        category: receipt.category,
+        totalAmount: calculatedTotal,
+        scanDate: new Date().toISOString(),
+        items: items.map(item => ({
+          name: item.name || 'Item Tanpa Nama',
+          price: parseInt(item.price) || 0,
+          qty: parseInt(item.qty) || 1,
+        }))
+      };
+
+      await insertReceiptWithDetails(payload);
+
+      Alert.alert(
+        "Tersimpan!",
+        "Data struk berhasil ditambahkan ke riwayat Anda.",
+        [{ text: "OK", onPress: () => router.dismissAll() }]
+      );
+    } catch (error) {
+      console.error("Failed to save receipt:", error);
+      Alert.alert("Gagal Menyimpan", "Terjadi kesalahan saat menyimpan ke database lokal.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   if (!fontsLoaded) return null;
@@ -227,8 +260,12 @@ export default function ReviewScreen() {
       </KeyboardAwareScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveButton} onPress={() => router.dismissAll()}>
-          <Text style={styles.saveButtonText}>Simpan</Text>
+        <TouchableOpacity style={styles.saveButton} onPress={handleSaveToDatabase}>
+          {isSaving ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.saveButtonText}>Simpan ke Database</Text>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

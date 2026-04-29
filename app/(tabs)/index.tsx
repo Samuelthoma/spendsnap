@@ -1,23 +1,24 @@
-import { getCategoryVisuals } from '@/constants/categories';
 import { Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, useFonts } from '@expo-google-fonts/inter';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import React from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { router, useFocusEffect } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-const DUMMY_RECEIPTS = [
-  { id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', merchant: 'Grand Lucky', category: 'Groceries', value: 1245000, scan_date: '2026-04-26T10:30:00Z' },
-  { id: '2', merchant: 'Pertamina', category: 'Transport', value: 450000, scan_date: '2026-04-25T14:15:00Z' },
-  { id: '3', merchant: 'Kopi Kenangan', category: 'Dining', value: 85000, scan_date: '2026-04-25T08:45:00Z' },
-  { id: '4', merchant: 'Tokopedia', category: 'Shopping', value: 542000, scan_date: '2026-04-24T18:20:00Z' },
-];
+import { getCategoryVisuals } from '../../constants/categories';
+import { getRecentReceipts } from '../../db/queries/receipts';
 
 const formatIDR = (value: number) => {
   return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
-const ReceiptItem = ({ item }: { item: typeof DUMMY_RECEIPTS[0] }) => {
+const ReceiptItem = ({ item }: { item: any }) => {
   const formattedDate = new Date(item.scan_date).toLocaleDateString('id-ID', {
     month: 'short',
     day: 'numeric',
@@ -27,32 +28,34 @@ const ReceiptItem = ({ item }: { item: typeof DUMMY_RECEIPTS[0] }) => {
 
   return (
     <TouchableOpacity
+      style={styles.itemContainer}
       activeOpacity={0.7}
       onPress={() => router.push({
         pathname: '/details',
         params: { id: item.id }
       })}
     >
-      <View style={styles.itemContainer}>
-        <View style={styles.itemLeft}>
-          <View style={[styles.iconContainer, { backgroundColor: visual.bg }]}>
-            <Ionicons name={visual.icon as any} size={22} color={visual.color} />
-          </View>
-          <View>
-            <Text style={styles.merchantText}>{item.merchant}</Text>
-            <Text style={styles.categoryText}>{item.category}</Text>
-          </View>
+      <View style={styles.itemLeft}>
+        <View style={[styles.iconContainer, { backgroundColor: visual.bg }]}>
+          <Ionicons name={visual.icon as any} size={22} color={visual.color} />
         </View>
-        <View style={styles.itemRight}>
-          <Text style={styles.valueText}>Rp {formatIDR(item.value)}</Text>
-          <Text style={styles.dateText}>{formattedDate}</Text>
+        <View>
+          <Text style={styles.merchantText}>{item.merchant}</Text>
+          <Text style={styles.categoryText}>{visual.label}</Text>
         </View>
+      </View>
+      <View style={styles.itemRight}>
+        <Text style={styles.valueText}>Rp {formatIDR(item.total_amount)}</Text>
+        <Text style={styles.dateText}>{formattedDate}</Text>
       </View>
     </TouchableOpacity>
   );
 };
 
 export default function HomeScreen() {
+  const [receipts, setReceipts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
   let [fontsLoaded] = useFonts({
     Inter_500Medium,
     Inter_600SemiBold,
@@ -60,11 +63,33 @@ export default function HomeScreen() {
     Inter_800ExtraBold,
   });
 
-  const currentMonthTotal = DUMMY_RECEIPTS.reduce((sum, item) => sum + item.value, 0);
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
 
-  if (!fontsLoaded) {
-    return null;
-  }
+      const fetchReceipts = async () => {
+        try {
+          setIsLoading(true);
+          const data = await getRecentReceipts(50);
+          if (isActive) {
+            setReceipts(data);
+          }
+        } catch (error) {
+          console.error("Failed to load receipts from SQLite", error);
+        } finally {
+          if (isActive) setIsLoading(false);
+        }
+      };
+
+      fetchReceipts();
+
+      return () => { isActive = false; };
+    }, [])
+  );
+
+  const currentMonthTotal = receipts.reduce((sum, item) => sum + (item.total_amount || 0), 0);
+
+  if (!fontsLoaded) return null;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
@@ -77,7 +102,7 @@ export default function HomeScreen() {
             {formatIDR(currentMonthTotal)}
           </Text>
           <View style={styles.cardFooter}>
-            <Text style={styles.cardFooterText}>April 2026</Text>
+            <Text style={styles.cardFooterText}>Riwayat Terbaru</Text>
           </View>
         </View>
 
@@ -85,20 +110,26 @@ export default function HomeScreen() {
           <Text style={styles.listHeader}>Aktivitas Terakhir</Text>
         </View>
 
-        <FlatList
-          data={DUMMY_RECEIPTS}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <ReceiptItem item={item} />}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-              <Ionicons name="scan-circle-outline" size={64} color="#D1D5DB" style={styles.emptyIcon} />
-              <Text style={styles.emptyText}>Belum ada struk.</Text>
-              <Text style={styles.emptySubtext}>Ketuk kamera untuk mulai mencatat.</Text>
-            </View>
-          }
-        />
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#111827" />
+          </View>
+        ) : (
+          <FlatList
+            data={receipts}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <ReceiptItem item={item} />}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={styles.emptyContainer}>
+                <Ionicons name="scan-circle-outline" size={64} color="#D1D5DB" style={styles.emptyIcon} />
+                <Text style={styles.emptyText}>Belum ada struk.</Text>
+                <Text style={styles.emptySubtext}>Ketuk kamera untuk mulai mencatat.</Text>
+              </View>
+            }
+          />
+        )}
       </View>
     </SafeAreaView>
   );
@@ -207,5 +238,11 @@ const styles = StyleSheet.create({
     color: '#6B7280',
     fontFamily: 'Inter_500Medium',
     fontSize: 15,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 40
   },
 });

@@ -27,7 +27,7 @@ export async function insertReceiptWithDetails(payload: ReceiptPayload) {
 
     for (const item of payload.items) {
       const detailId = crypto.randomUUID();
-      
+
       await db.runAsync(
         `INSERT INTO receipt_details (id, receipt_id, item_name, price, quantity) 
          VALUES (?, ?, ?, ?, ?)`,
@@ -51,4 +51,28 @@ export async function getReceiptDetails(receiptId: string) {
     `SELECT * FROM receipt_details WHERE receipt_id = ?`,
     [receiptId]
   );
+}
+
+export async function getReceiptById(receiptId: string) {
+  try {
+    return await db.getFirstAsync<any>(
+      `SELECT * FROM receipts WHERE id = ?`,
+      [receiptId]
+    );
+  } catch (err) {
+    console.error("Error fetching receipt by ID:", err);
+    throw err;
+  }
+}
+
+export async function deleteReceipt(receiptId: string) {
+  try {
+    return await db.runAsync(
+      `DELETE FROM receipts WHERE id = ?`,
+      [receiptId]
+    );
+  } catch (err) {
+    console.error("Error deleting receipt:", err);
+    throw err;
+  }
 }

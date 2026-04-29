@@ -1,9 +1,9 @@
-import { getCategoryVisuals } from '@/constants/categories';
 import { Inter_500Medium, Inter_600SemiBold, Inter_700Bold, Inter_800ExtraBold, useFonts } from '@expo-google-fonts/inter';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert,
     ScrollView,
     StyleSheet,
@@ -13,26 +13,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const DUMMY_DB = {
-    'f47ac10b-58cc-4372-a567-0e02b2c3d479': {
-        id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
-        merchant: 'Grand Lucky',
-        category: 'Groceries',
-        totalAmount: 155000,
-        scan_date: '2026-04-26T10:30:00Z',
-        items: [
-            { id: 'b2d3e4f5-1a2b-4c3d-8e7f-9a0b1c2d3e4f', name: 'Susu UHT 1L', price: 22000, qty: 2 },
-            { id: 'c9b8e7f1-2d3a-4e5c-9f6b-8a7c6d5e4f3a', name: 'Telur Ayam 1kg', price: 35000, qty: 1 },
-            { id: 'd4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a', name: 'Beras Premium 5kg', price: 76000, qty: 1 }
-        ]
-    }
-};
+import { getCategoryVisuals } from '../constants/categories';
+import { deleteReceipt, getReceiptById, getReceiptDetails } from '../db/queries/receipts';
 
 const formatIDR = (value: number) => value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
 export default function DetailsScreen() {
     const { id } = useLocalSearchParams();
     const [receipt, setReceipt] = useState<any>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     let [fontsLoaded] = useFonts({
         Inter_500Medium,
@@ -42,9 +31,30 @@ export default function DetailsScreen() {
     });
 
     useEffect(() => {
-        const targetId = typeof id === 'string' ? id : 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
-        const data = (DUMMY_DB as any)[targetId] || (DUMMY_DB as any)['f47ac10b-58cc-4372-a567-0e02b2c3d479'];
-        setReceipt(data);
+        const fetchFullReceipt = async () => {
+            if (!id || typeof id !== 'string') return;
+
+            try {
+                setIsLoading(true);
+                const parentData = await getReceiptById(id);
+
+                if (parentData) {
+                    const childData = await getReceiptDetails(id);
+
+                    setReceipt({
+                        ...parentData,
+                        items: childData
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to load receipt details:", error);
+                Alert.alert("Error", "Gagal memuat detail struk.");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchFullReceipt();
     }, [id]);
 
     const handleDelete = () => {
@@ -56,17 +66,44 @@ export default function DetailsScreen() {
                 {
                     text: "Hapus",
                     style: "destructive",
-                    onPress: () => {
-                        router.back();
+                    onPress: async () => {
+                        try {
+                            if (typeof id === 'string') {
+                                await deleteReceipt(id);
+                                // Go back to the previous screen (Home)
+                                router.back();
+                            }
+                        } catch (error) {
+                            Alert.alert("Gagal", "Tidak dapat menghapus struk saat ini.");
+                        }
                     }
                 }
             ]
         );
     };
 
-    if (!fontsLoaded || !receipt) return null;
+    if (!fontsLoaded) return null;
 
-    const visual = getCategoryVisuals(receipt.category)
+    if (isLoading) {
+        return (
+            <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+                <ActivityIndicator size="large" color="#111827" />
+            </SafeAreaView>
+        );
+    }
+
+    if (!receipt) {
+        return (
+            <SafeAreaView style={[styles.safeArea, { justifyContent: 'center', alignItems: 'center' }]}>
+                <Text style={{ fontFamily: 'Inter_500Medium', color: '#6B7280' }}>Struk tidak ditemukan.</Text>
+                <TouchableOpacity onPress={() => router.back()} style={{ marginTop: 16 }}>
+                    <Text style={{ color: '#007AFF', fontFamily: 'Inter_600SemiBold' }}>Kembali</Text>
+                </TouchableOpacity>
+            </SafeAreaView>
+        );
+    }
+
+    const visual = getCategoryVisuals(receipt.category);
 
     const formattedDate = new Date(receipt.scan_date).toLocaleDateString('id-ID', {
         weekday: 'long',
@@ -79,6 +116,7 @@ export default function DetailsScreen() {
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#111827" />
@@ -101,7 +139,7 @@ export default function DetailsScreen() {
                             <Ionicons name={visual.icon as any} size={32} color={visual.color} />
                         </View>
                         <Text style={styles.merchantName}>{receipt.merchant}</Text>
-                        <Text style={styles.totalAmount}>Rp {formatIDR(receipt.totalAmount)}</Text>
+                        <Text style={styles.totalAmount}>Rp {formatIDR(receipt.total_amount)}</Text>
 
                         <View style={styles.badgeContainer}>
                             <View style={[styles.categoryBadge, { backgroundColor: visual.bg }]}>
@@ -121,22 +159,28 @@ export default function DetailsScreen() {
                     <View style={styles.detailsSection}>
                         <Text style={styles.sectionTitle}>Rincian Pembelian</Text>
 
-                        {receipt.items.map((item: any, index: number) => {
-                            const itemTotal = item.qty * item.price;
-                            return (
-                                <View key={item.id} style={styles.itemRow}>
-                                    <View style={styles.itemRowLeft}>
-                                        <Text style={styles.itemName}>{item.name}</Text>
-                                        <Text style={styles.itemQtyPrice}>
-                                            {item.qty} x Rp {formatIDR(item.price)}
-                                        </Text>
+                        {receipt.items && receipt.items.length > 0 ? (
+                            receipt.items.map((item: any) => {
+                                const itemTotal = item.quantity * item.price;
+                                return (
+                                    <View key={item.id} style={styles.itemRow}>
+                                        <View style={styles.itemRowLeft}>
+                                            <Text style={styles.itemName}>{item.item_name}</Text>
+                                            <Text style={styles.itemQtyPrice}>
+                                                {item.quantity} x Rp {formatIDR(item.price)}
+                                            </Text>
+                                        </View>
+                                        <View style={styles.itemRowRight}>
+                                            <Text style={styles.itemTotal}>Rp {formatIDR(itemTotal)}</Text>
+                                        </View>
                                     </View>
-                                    <View style={styles.itemRowRight}>
-                                        <Text style={styles.itemTotal}>Rp {formatIDR(itemTotal)}</Text>
-                                    </View>
-                                </View>
-                            );
-                        })}
+                                );
+                            })
+                        ) : (
+                            <Text style={{ fontFamily: 'Inter_500Medium', color: '#9CA3AF', fontStyle: 'italic' }}>
+                                Tidak ada rincian item.
+                            </Text>
+                        )}
 
                         <View style={styles.metadataSection}>
                             <View style={styles.metadataRow}>
@@ -145,12 +189,13 @@ export default function DetailsScreen() {
                             </View>
                             <View style={styles.metadataRow}>
                                 <Text style={styles.metadataLabel}>Sumber</Text>
-                                <Text style={styles.metadataValue}>Kamera Utama</Text>
+                                <Text style={styles.metadataValue}>AI Scanner</Text>
                             </View>
                         </View>
 
                     </View>
                 </View>
+
             </ScrollView>
         </SafeAreaView>
     );
