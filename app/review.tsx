@@ -1,9 +1,17 @@
-import { CATEGORIES, getCategoryVisuals } from '@/constants/categories';
-import { insertReceiptWithDetails, ReceiptPayload } from '@/db/queries/receipts';
-import { Inter_500Medium, Inter_600SemiBold, Inter_700Bold, useFonts } from '@expo-google-fonts/inter';
-import { Ionicons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { CATEGORIES, getCategoryVisuals } from "@/constants/categories";
+import {
+  insertReceiptWithDetails,
+  ReceiptPayload,
+} from "@/db/queries/receipts";
+import {
+  SpaceGrotesk_500Medium,
+  SpaceGrotesk_600SemiBold,
+  SpaceGrotesk_700Bold,
+  useFonts,
+} from "@expo-google-fonts/space-grotesk";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -14,22 +22,22 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { SafeAreaView } from 'react-native-safe-area-context';
+} from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ReviewScreen() {
   const params = useLocalSearchParams();
 
-  const [receipt, setReceipt] = useState({ merchant: '', category: '' });
+  const [receipt, setReceipt] = useState({ merchant: "", category: "" });
   const [items, setItems] = useState<any[]>([]);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   let [fontsLoaded] = useFonts({
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    SpaceGrotesk_500Medium,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
   });
 
   useEffect(() => {
@@ -43,37 +51,53 @@ export default function ReviewScreen() {
     }
 
     setReceipt({
-      merchant: dataToLoad.merchant || '',
-      category: dataToLoad.category || 'Lainnya',
+      merchant: dataToLoad.merchant || "",
+      category: dataToLoad.category || "Lainnya",
     });
 
-    const formattedItems = (dataToLoad.items || []).map((item: any, index: number) => ({
-      ...item,
-      id: item.id || Date.now().toString() + index,
-      price: item.price?.toString() || '0',
-      qty: item.qty?.toString() || '1'
-    }));
+    const formattedItems = (dataToLoad.items || []).map(
+      (item: any, index: number) => ({
+        ...item,
+        id: item.id || Date.now().toString() + index,
+        price: item.price?.toString() || "0",
+        qty: item.qty?.toString() || "1",
+      }),
+    );
 
     setItems(formattedItems);
   }, [params.extractedData]);
 
-  const calculatedTotal = items.reduce((sum, item) => sum + ((parseInt(item.price) || 0) * (parseInt(item.qty) || 1)), 0);
+  const calculatedTotal = items.reduce(
+    (sum, item) =>
+      sum + (parseInt(item.price) || 0) * (parseInt(item.qty) || 1),
+    0,
+  );
 
   const handleUpdateItem = (id: string, field: string, newValue: string) => {
-    setItems(prev => prev.map(item => item.id === id ? { ...item, [field]: newValue } : item));
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, [field]: newValue } : item,
+      ),
+    );
   };
 
   const handleAddItem = () => {
-    setItems([...items, { id: Date.now().toString(), name: '', price: '', qty: '1' }]);
+    setItems([
+      ...items,
+      { id: Date.now().toString(), name: "", price: "", qty: "1" },
+    ]);
   };
 
   const handleRemoveItem = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+    setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
   const handleSaveToDatabase = async () => {
     if (items.length === 0) {
-      Alert.alert("Validasi", "Minimal harus ada satu rincian item untuk disimpan.");
+      Alert.alert(
+        "Validasi",
+        "Minimal harus ada satu rincian item untuk disimpan.",
+      );
       return;
     }
     if (!receipt.merchant.trim()) {
@@ -89,11 +113,11 @@ export default function ReviewScreen() {
         category: receipt.category,
         totalAmount: calculatedTotal,
         scanDate: new Date().toISOString(),
-        items: items.map(item => ({
-          name: item.name || 'Item Tanpa Nama',
+        items: items.map((item) => ({
+          name: item.name || "Item Tanpa Nama",
           price: parseInt(item.price) || 0,
           qty: parseInt(item.qty) || 1,
-        }))
+        })),
       };
 
       await insertReceiptWithDetails(payload);
@@ -101,11 +125,14 @@ export default function ReviewScreen() {
       Alert.alert(
         "Tersimpan!",
         "Data struk berhasil ditambahkan ke riwayat Anda.",
-        [{ text: "OK", onPress: () => router.dismissAll() }]
+        [{ text: "OK", onPress: () => router.dismissAll() }],
       );
     } catch (error) {
       console.error("Failed to save receipt:", error);
-      Alert.alert("Gagal Menyimpan", "Terjadi kesalahan saat menyimpan ke database lokal.");
+      Alert.alert(
+        "Gagal Menyimpan",
+        "Terjadi kesalahan saat menyimpan ke database lokal.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -113,10 +140,10 @@ export default function ReviewScreen() {
 
   if (!fontsLoaded) return null;
 
-  const selectedCat = getCategoryVisuals(receipt.category)
+  const selectedCat = getCategoryVisuals(receipt.category);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
       <Modal visible={showCategoryPicker} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -133,12 +160,23 @@ export default function ReviewScreen() {
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.categoryOption}
-                  onPress={() => { setReceipt({ ...receipt, category: item.value }); setShowCategoryPicker(false); }}
+                  onPress={() => {
+                    setReceipt({ ...receipt, category: item.value });
+                    setShowCategoryPicker(false);
+                  }}
                 >
-                  <View style={[styles.modalIconBox, { backgroundColor: item.bg }]}>
-                    <Ionicons name={item.icon as any} size={20} color={item.color} />
+                  <View
+                    style={[styles.modalIconBox, { backgroundColor: item.bg }]}
+                  >
+                    <Ionicons
+                      name={item.icon as any}
+                      size={20}
+                      color={item.color}
+                    />
                   </View>
-                  <Text style={styles.categoryOptionLabel} numberOfLines={1}>{item.label}</Text>
+                  <Text style={styles.categoryOptionLabel} numberOfLines={1}>
+                    {item.label}
+                  </Text>
                 </TouchableOpacity>
               )}
               contentContainerStyle={styles.modalList}
@@ -148,7 +186,10 @@ export default function ReviewScreen() {
       </Modal>
 
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="#111827" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Tinjau Struk</Text>
@@ -162,7 +203,6 @@ export default function ReviewScreen() {
         extraScrollHeight={40}
         keyboardShouldPersistTaps="handled"
       >
-
         <View style={styles.masterCard}>
           <View style={styles.cardHeader}>
             <Ionicons name="receipt-outline" size={18} color="#9CA3AF" />
@@ -182,11 +222,25 @@ export default function ReviewScreen() {
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1.2, marginRight: 12 }]}>
               <Text style={styles.label}>Kategori Struk</Text>
-              <TouchableOpacity style={styles.dropdownTrigger} onPress={() => setShowCategoryPicker(true)}>
-                <View style={[styles.tinyIconBox, { backgroundColor: selectedCat.bg }]}>
-                  <Ionicons name={selectedCat.icon as any} size={14} color={selectedCat.color} />
+              <TouchableOpacity
+                style={styles.dropdownTrigger}
+                onPress={() => setShowCategoryPicker(true)}
+              >
+                <View
+                  style={[
+                    styles.tinyIconBox,
+                    { backgroundColor: selectedCat.bg },
+                  ]}
+                >
+                  <Ionicons
+                    name={selectedCat.icon as any}
+                    size={14}
+                    color={selectedCat.color}
+                  />
                 </View>
-                <Text style={styles.dropdownText} numberOfLines={1}>{selectedCat.label}</Text>
+                <Text style={styles.dropdownText} numberOfLines={1}>
+                  {selectedCat.label}
+                </Text>
                 <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
               </TouchableOpacity>
             </View>
@@ -194,8 +248,12 @@ export default function ReviewScreen() {
             <View style={[styles.inputGroup, { flex: 1 }]}>
               <Text style={styles.label}>Total (Rp)</Text>
               <View style={styles.readOnlyInput}>
-                <Text style={styles.readOnlyText} numberOfLines={1} adjustsFontSizeToFit>
-                  {calculatedTotal.toLocaleString('id-ID')}
+                <Text
+                  style={styles.readOnlyText}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {calculatedTotal.toLocaleString("id-ID")}
                 </Text>
               </View>
             </View>
@@ -214,7 +272,10 @@ export default function ReviewScreen() {
               <View style={styles.itemNumberBox}>
                 <Text style={styles.itemNumber}>{index + 1}</Text>
               </View>
-              <TouchableOpacity onPress={() => handleRemoveItem(item.id)} style={styles.deleteBtn}>
+              <TouchableOpacity
+                onPress={() => handleRemoveItem(item.id)}
+                style={styles.deleteBtn}
+              >
                 <Ionicons name="close" size={20} color="#EF4444" />
               </TouchableOpacity>
             </View>
@@ -223,7 +284,7 @@ export default function ReviewScreen() {
               <TextInput
                 style={styles.itemInputLarge}
                 value={item.name}
-                onChangeText={(val) => handleUpdateItem(item.id, 'name', val)}
+                onChangeText={(val) => handleUpdateItem(item.id, "name", val)}
                 placeholder="Nama Barang"
               />
             </View>
@@ -234,7 +295,9 @@ export default function ReviewScreen() {
                 <TextInput
                   style={styles.itemInputSmall}
                   value={item.qty}
-                  onChangeText={(val) => handleUpdateItem(item.id, 'qty', val.replace(/[^0-9]/g, ''))}
+                  onChangeText={(val) =>
+                    handleUpdateItem(item.id, "qty", val.replace(/[^0-9]/g, ""))
+                  }
                   keyboardType="numeric"
                   textAlign="center"
                 />
@@ -244,7 +307,13 @@ export default function ReviewScreen() {
                 <TextInput
                   style={styles.itemInputSmall}
                   value={item.price}
-                  onChangeText={(val) => handleUpdateItem(item.id, 'price', val.replace(/[^0-9]/g, ''))}
+                  onChangeText={(val) =>
+                    handleUpdateItem(
+                      item.id,
+                      "price",
+                      val.replace(/[^0-9]/g, ""),
+                    )
+                  }
                   keyboardType="numeric"
                 />
               </View>
@@ -256,11 +325,13 @@ export default function ReviewScreen() {
           <Ionicons name="add" size={20} color="#007AFF" />
           <Text style={styles.addItemText}>Tambah Item Manual</Text>
         </TouchableOpacity>
-
       </KeyboardAwareScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveToDatabase}>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSaveToDatabase}
+        >
           {isSaving ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
@@ -275,271 +346,296 @@ export default function ReviewScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F3F4F6'
+    backgroundColor: "#F8FAFC",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    zIndex: 10
+    backgroundColor: "#F8FAFC",
+    zIndex: 10,
   },
   headerTitle: {
     fontSize: 18,
-    fontFamily: 'Inter_700Bold',
-    color: '#111827'
+    fontFamily: "SpaceGrotesk_700Bold",
+    color: "#0F172A",
   },
   backButton: {
-    padding: 4,
-    marginLeft: -4
+    padding: 8,
+    marginLeft: -4,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
   },
   scrollView: {
-    flex: 1
+    flex: 1,
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 40
+    paddingBottom: 40,
   },
   masterCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 12,
-    elevation: 3
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.1,
+    shadowRadius: 16,
+    elevation: 4,
   },
   cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
   },
   cardTitle: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 14,
-    color: '#6B7280',
+    color: "#6366F1",
     marginLeft: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5
+    textTransform: "uppercase",
+    letterSpacing: 1,
   },
   divider: {
     height: 1,
-    backgroundColor: '#E5E7EB',
-    marginVertical: 24
+    backgroundColor: "#E2E8F0",
+    marginVertical: 24,
   },
   sectionHeader: {
-    marginBottom: 16
+    marginBottom: 16,
   },
   sectionTitle: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 18,
-    color: '#111827'
+    fontFamily: "SpaceGrotesk_700Bold",
+    fontSize: 20,
+    color: "#0F172A",
+    letterSpacing: -0.5,
   },
   itemCard: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#F3F4F6'
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 1,
   },
   itemCardTop: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
   },
   itemNumberBox: {
-    backgroundColor: '#F3F4F6',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center'
+    backgroundColor: "#F1F5F9",
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
   },
   itemNumber: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 12,
-    color: '#9CA3AF'
+    color: "#64748B",
   },
   deleteBtn: {
-    padding: 4
+    padding: 4,
   },
   row: {
-    flexDirection: 'row'
+    flexDirection: "row",
   },
   inputGroup: {
-    marginBottom: 16
+    marginBottom: 16,
   },
   label: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 13,
-    color: '#4B5563',
-    marginBottom: 8
+    color: "#475569",
+    marginBottom: 8,
   },
   labelTiny: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 11,
-    color: '#9CA3AF',
+    color: "#94A3B8",
     marginBottom: 6,
-    textTransform: 'uppercase'
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E2E8F0",
     borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontFamily: 'Inter_600SemiBold',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 15,
-    color: '#111827'
+    color: "#0F172A",
   },
   readOnlyInput: {
-    backgroundColor: '#F3F4F6',
+    backgroundColor: "#EEF2FF",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#C7D2FE",
     borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    justifyContent: 'center',
-    height: 48
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    justifyContent: "center",
+    height: 52,
   },
   readOnlyText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 15,
-    color: '#4B5563'
+    fontFamily: "SpaceGrotesk_700Bold",
+    fontSize: 16,
+    color: "#1E1B4B",
   },
   itemInputLarge: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 16,
-    color: '#111827',
+    color: "#0F172A",
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    paddingVertical: 8
+    borderBottomColor: "#E2E8F0",
+    paddingVertical: 8,
   },
   itemInputSmall: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E2E8F0",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 14,
-    color: '#111827'
+    color: "#0F172A",
   },
   dropdownTrigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E2E8F0",
     borderRadius: 12,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 10,
-    height: 48
+    height: 52,
   },
   tinyIconBox: {
-    width: 26,
-    height: 26,
-    borderRadius: 6,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 10,
   },
   dropdownText: {
     flex: 1,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 14,
-    color: '#111827'
+    color: "#0F172A",
   },
   addItemBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#EFF6FF',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#EEF2FF",
     borderRadius: 16,
     paddingVertical: 16,
-    borderStyle: 'dashed',
+    borderStyle: "dashed",
     borderWidth: 1,
-    borderColor: '#BFDBFE',
-    marginTop: 8
+    borderColor: "#A5B4FC",
+    marginTop: 8,
   },
   addItemText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 15,
-    color: '#007AFF',
-    marginLeft: 8
+    color: "#4F46E5",
+    marginLeft: 8,
   },
   footer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB'
+    paddingBottom: 32,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    elevation: 10,
   },
   saveButton: {
-    backgroundColor: '#111827',
-    borderRadius: 14,
-    paddingVertical: 16,
-    alignItems: 'center'
+    backgroundColor: "#1E1B4B",
+    borderRadius: 16,
+    paddingVertical: 18,
+    alignItems: "center",
   },
   saveButtonText: {
-    color: '#FFFFFF',
-    fontFamily: 'Inter_600SemiBold',
-    fontSize: 16
+    color: "#FFFFFF",
+    fontFamily: "SpaceGrotesk_700Bold",
+    fontSize: 16,
+    letterSpacing: 0.5,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'flex-end'
+    backgroundColor: "rgba(15, 23, 42, 0.6)",
+    justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    padding: 20,
-    maxHeight: '70%'
+    backgroundColor: "#F8FAFC",
+    borderTopLeftRadius: 32,
+    borderTopRightRadius: 32,
+    padding: 24,
+    paddingBottom: 40,
+    maxHeight: "75%",
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
   },
   modalTitle: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 20,
-    color: '#111827'
+    fontFamily: "SpaceGrotesk_700Bold",
+    fontSize: 22,
+    color: "#0F172A",
   },
   modalList: {
-    paddingBottom: 40
+    paddingBottom: 20,
   },
   categoryOption: {
     flex: 1,
-    alignItems: 'center',
+    alignItems: "center",
     padding: 16,
-    margin: 4,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16
+    margin: 6,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    elevation: 1,
   },
   modalIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
   },
   categoryOptionLabel: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 12,
-    color: '#4B5563',
-    textAlign: 'center'
+    color: "#475569",
+    textAlign: "center",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
 });

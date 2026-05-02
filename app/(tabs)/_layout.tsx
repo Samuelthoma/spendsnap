@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from "@expo/vector-icons";
 import { router, Tabs } from "expo-router";
 import { Platform, Pressable, StyleSheet, View } from "react-native";
 
@@ -57,20 +57,20 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   tabBar: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
     borderTopWidth: 0,
     elevation: 0,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.04,
     shadowRadius: 12,
   },
   tabBarLabel: {
-    fontFamily: 'Inter_600SemiBold',
-    marginBottom: Platform.OS === 'ios' ? 0 : 5,
+    fontFamily: "Inter_600SemiBold",
+    marginBottom: Platform.OS === "ios" ? 0 : 5,
   },
   floatingButton: {
     position: "absolute",

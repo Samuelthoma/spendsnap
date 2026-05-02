@@ -1,12 +1,11 @@
-// app/(tabs)/settings.tsx
 import {
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-  useFonts
-} from '@expo-google-fonts/inter';
-import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+  SpaceGrotesk_500Medium,
+  SpaceGrotesk_600SemiBold,
+  SpaceGrotesk_700Bold,
+  useFonts,
+} from "@expo-google-fonts/space-grotesk";
+import { Ionicons } from "@expo/vector-icons";
+import React from "react";
 import {
   Alert,
   ScrollView,
@@ -15,18 +14,30 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useAppStore } from '../../store/useAppStore'; // Adjust path if needed
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useAppStore } from "../../store/useAppStore"; // Adjust path if needed
 
-const SettingRow = ({ icon, iconBg, iconColor, label, value, isDestructive = false, onPress }: any) => (
-  <TouchableOpacity style={styles.settingRow} onPress={onPress} activeOpacity={0.7}>
+const SettingRow = ({
+  icon,
+  iconBg,
+  iconColor,
+  label,
+  value,
+  isDestructive = false,
+  onPress,
+}: any) => (
+  <TouchableOpacity
+    style={styles.settingRow}
+    onPress={onPress}
+    activeOpacity={0.7}
+  >
     <View style={styles.rowLeft}>
       <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
         <Ionicons name={icon} size={20} color={iconColor} />
       </View>
-      <Text style={[styles.rowLabel, isDestructive && { color: '#EF4444' }]}>
+      <Text style={[styles.rowLabel, isDestructive && { color: "#EF4444" }]}>
         {label}
       </Text>
     </View>
@@ -38,12 +49,13 @@ const SettingRow = ({ icon, iconBg, iconColor, label, value, isDestructive = fal
 );
 
 export default function SettingsScreen() {
-  const { apiKey, setApiKey, isDarkMode, toggleDarkMode, clearData } = useAppStore();
+  const { apiKey, setApiKey, isDarkMode, toggleDarkMode, clearData } =
+    useAppStore();
 
   let [fontsLoaded] = useFonts({
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    SpaceGrotesk_500Medium,
+    SpaceGrotesk_600SemiBold,
+    SpaceGrotesk_700Bold,
   });
 
   if (!fontsLoaded) return null;
@@ -62,13 +74,13 @@ export default function SettingsScreen() {
       "Yakin ingin menghapus API Key dan preferensi Anda?",
       [
         { text: "Batal", style: "cancel" },
-        { text: "Hapus", style: "destructive", onPress: clearData }
-      ]
+        { text: "Hapus", style: "destructive", onPress: clearData },
+      ],
     );
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <View style={styles.stickyHeader}>
         <Text style={styles.headerTitle}>Pengaturan</Text>
       </View>
@@ -78,7 +90,6 @@ export default function SettingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Konfigurasi AI</Text>
           <View style={styles.apiCard}>
@@ -100,7 +111,8 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
           <Text style={styles.helperText}>
-            Key ini digunakan untuk memproses struk menggunakan Gemini AI secara lokal di perangkat Anda.
+            Key ini digunakan untuk memproses struk menggunakan Gemini AI secara
+            lokal di perangkat Anda.
           </Text>
         </View>
 
@@ -109,7 +121,9 @@ export default function SettingsScreen() {
           <View style={styles.listContainer}>
             <View style={styles.settingRow}>
               <View style={styles.rowLeft}>
-                <View style={[styles.iconContainer, { backgroundColor: '#E0E7FF' }]}>
+                <View
+                  style={[styles.iconContainer, { backgroundColor: "#E0E7FF" }]}
+                >
                   <Ionicons name="moon" size={20} color="#6366F1" />
                 </View>
                 <Text style={styles.rowLabel}>Mode Gelap</Text>
@@ -117,7 +131,7 @@ export default function SettingsScreen() {
               <Switch
                 value={isDarkMode}
                 onValueChange={toggleDarkMode}
-                trackColor={{ false: '#E5E7EB', true: '#111827' }}
+                trackColor={{ false: "#E5E7EB", true: "#111827" }}
               />
             </View>
             <SettingRow
@@ -137,7 +151,6 @@ export default function SettingsScreen() {
           </View>
         </View>
 
-        {/* About Section */}
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Lainnya</Text>
           <View style={styles.listContainer}>
@@ -160,7 +173,6 @@ export default function SettingsScreen() {
 
         <Text style={styles.versionText}>Versi 1.0.0 (Personal Build)</Text>
 
-        {/* Extra padding for bottom tab spacing */}
         <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>
@@ -168,118 +180,133 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
-
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F8FAFC", // Soft cool gray
+  },
   stickyHeader: {
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 16,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#F8FAFC", // Match background
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: "#F1F5F9", // Very soft divider
     zIndex: 10,
   },
   headerTitle: {
     fontSize: 28,
-    fontFamily: 'Inter_700Bold',
-    color: '#111827',
+    fontFamily: "SpaceGrotesk_700Bold", // Updated
+    color: "#0F172A", // Deep navy
     letterSpacing: -0.5,
   },
-
   container: { flex: 1, paddingHorizontal: 20 },
   scrollContent: { paddingTop: 24 },
 
   section: { marginBottom: 32 },
   sectionLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
-    color: '#9CA3AF',
-    textTransform: 'uppercase',
+    fontSize: 13,
+    fontFamily: "SpaceGrotesk_600SemiBold", // Updated
+    color: "#6366F1", // Indigo accent
+    textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 12,
   },
 
   apiCard: {
-    backgroundColor: '#F9FAFB',
+    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 16,
-    borderWidth: 1,
-    borderColor: '#F3F4F6',
+    // Applied the soft indigo shadow
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 2,
   },
-  apiHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  apiHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   apiTitle: {
-    fontSize: 14,
-    fontFamily: 'Inter_600SemiBold',
-    color: '#4B5563',
+    fontSize: 15,
+    fontFamily: "SpaceGrotesk_700Bold", // Updated
+    color: "#0F172A",
     marginLeft: 8,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#F8FAFC",
     borderRadius: 12,
-    padding: 14,
+    padding: 16, // Slightly taller for premium feel
     fontSize: 15,
-    fontFamily: 'Inter_500Medium',
-    color: '#111827',
+    fontFamily: "SpaceGrotesk_600SemiBold", // Updated
+    color: "#0F172A",
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: "#E2E8F0",
     marginBottom: 12,
   },
   saveButton: {
-    backgroundColor: '#111827',
+    backgroundColor: "#1E1B4B", // Deep navy
     borderRadius: 12,
-    padding: 14,
-    alignItems: 'center',
+    padding: 16,
+    alignItems: "center",
   },
   saveButtonText: {
-    color: '#FFFFFF',
-    fontFamily: 'Inter_600SemiBold',
+    color: "#FFFFFF",
+    fontFamily: "SpaceGrotesk_700Bold", // Updated
     fontSize: 15,
+    letterSpacing: 0.5,
   },
   helperText: {
     fontSize: 13,
-    color: '#9CA3AF',
-    fontFamily: 'Inter_500Medium',
+    color: "#64748B",
+    fontFamily: "SpaceGrotesk_500Medium", // Updated
     marginTop: 8,
     paddingHorizontal: 4,
     lineHeight: 18,
   },
 
-  listContainer: { backgroundColor: '#FFFFFF' },
+  listContainer: {
+    backgroundColor: "transparent", // Let the safeArea color show through
+  },
   settingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
+    borderBottomColor: "#F1F5F9",
   },
-  rowLeft: { flexDirection: 'row', alignItems: 'center' },
+  rowLeft: { flexDirection: "row", alignItems: "center" },
   iconContainer: {
     width: 40,
     height: 40,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 16,
+    backgroundColor: "#FFFFFF", // White icon boxes pop against the gray
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
   },
   rowLabel: {
     fontSize: 16,
-    fontFamily: 'Inter_500Medium',
-    color: '#111827',
+    fontFamily: "SpaceGrotesk_600SemiBold", // Updated
+    color: "#0F172A",
   },
-  rowRight: { flexDirection: 'row', alignItems: 'center' },
+  rowRight: { flexDirection: "row", alignItems: "center" },
   rowValue: {
     fontSize: 14,
-    color: '#9CA3AF',
-    fontFamily: 'Inter_500Medium',
+    color: "#94A3B8",
+    fontFamily: "SpaceGrotesk_500Medium", // Updated
     marginRight: 8,
   },
 
   versionText: {
-    textAlign: 'center',
-    color: '#D1D5DB',
+    textAlign: "center",
+    color: "#CBD5E1",
     fontSize: 12,
-    fontFamily: 'Inter_500Medium',
+    fontFamily: "SpaceGrotesk_600SemiBold", // Updated
     marginTop: -8,
-  }
+    letterSpacing: 1,
+  },
 });
