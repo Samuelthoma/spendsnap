@@ -125,7 +125,7 @@ export default function ReviewScreen() {
       Alert.alert(
         "Tersimpan!",
         "Data struk berhasil ditambahkan ke riwayat Anda.",
-        [{ text: "OK", onPress: () => router.dismissAll() }],
+        [{ text: "OK", onPress: () => router.replace('/') }],
       );
     } catch (error) {
       console.error("Failed to save receipt:", error);

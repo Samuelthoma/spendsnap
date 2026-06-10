@@ -69,9 +69,10 @@ export default function ScannerScreen() {
         total: item.price * item.qty
       }));
 
-      setReceiptData(formattedItems, aiResponse.tax || 0);
 
       if (fromSplit === 'true') {
+        router.setParams({ fromSplit: '' });
+        setReceiptData(formattedItems, aiResponse.tax || 0);
         router.replace('/split');
         console.log(aiResponse)
       } else {
