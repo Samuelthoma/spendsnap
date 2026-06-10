@@ -1,8 +1,10 @@
+import { useAppStore } from '@/store/useAppStore';
+import { useReceiptStore } from '@/store/useReceiptStore';
 import { Ionicons } from '@expo/vector-icons';
 import { GoogleGenAI } from "@google/genai";
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -12,13 +14,14 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { useAppStore } from '../store/useAppStore';
+
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [isProcessing, setIsProcessing] = useState(false);
   const cameraRef = useRef<any>(null);
-
+  const { setReceiptData } = useReceiptStore();
+  const { fromSplit } = useLocalSearchParams();
   const { apiKey } = useAppStore();
 
   if (!permission) return <View style={styles.container} />;
@@ -51,7 +54,6 @@ export default function ScannerScreen() {
 
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
-
       const result = await TextRecognition.recognize(photo.uri);
       const rawText = result.text;
 
@@ -61,14 +63,29 @@ export default function ScannerScreen() {
 
       const aiResponse = await processWithGemini(rawText, apiKey);
 
-      router.replace({
-        pathname: '/review',
-        params: { extractedData: JSON.stringify(aiResponse) }
-      });
+      const formattedItems = (aiResponse.items || []).map((item: any, index: number) => ({
+        ...item,
+        id: `item-${Date.now()}-${index}`,
+        total: item.price * item.qty
+      }));
+
+      setReceiptData(formattedItems, aiResponse.tax || 0);
+
+      if (fromSplit === 'true') {
+        router.replace('/split');
+        console.log(aiResponse)
+      } else {
+        router.replace({
+          pathname: '/review',
+          params: { extractedData: JSON.stringify(aiResponse) }
+        });
+      }
 
     } catch (error: any) {
       Alert.alert("Pemindaian Gagal", error.message || "Terjadi kesalahan saat memproses struk.");
       setIsProcessing(false);
+    } finally {
+      setIsProcessing(false)
     }
   };
 
@@ -120,6 +137,7 @@ const processWithGemini = async (ocrText: string, key: string) => {
       "merchant": "string",
       "category": "string",
       "totalAmount": number,
+      "tax": number,
       "date": "YYYY-MM-DDTHH:mm:ss.sssZ",
       "items": [
         {
@@ -133,6 +151,7 @@ const processWithGemini = async (ocrText: string, key: string) => {
     Rules:
     - 'category' must be exactly one of: Groceries, Transport, Dining, Shopping, Health, Entertainment. If none fit, use 'Lainnya'.
     - 'totalAmount' should be the final parsed total of the receipt.
+    - 'tax' should be the total tax and service charge combined (look for terms like Tax, PPN, PB1, Service Charge, or SC). If no tax or service charge is found, set it to 0.
     - 'date' should be an ISO 8601 formatted string. If no exact time is found, default to 12:00:00.000Z.
     - For 'items', 'price' is the price per single unit, and 'qty' is the quantity purchased.
     

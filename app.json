@@ -38,6 +38,13 @@
           }
         }
       ],
+      [
+        "expo-navigation-bar",
+        {
+          "backgroundColor": "#F8FAFC",
+          "barStyle": "dark-content"
+        }
+      ],
       "expo-sqlite",
       "expo-font",
       "expo-image",
