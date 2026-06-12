@@ -1,7 +1,7 @@
 import { useAppStore } from '@/store/useAppStore';
 import { useReceiptStore } from '@/store/useReceiptStore';
 import { Ionicons } from '@expo/vector-icons';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Schema, Type } from "@google/genai";
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -130,44 +130,57 @@ export default function ScannerScreen() {
 }
 
 const processWithGemini = async (ocrText: string, key: string) => {
-  const prompt = `
-    Extract data from the provided OCR receipt text. Return ONLY a valid JSON object. No markdown formatting, no explanations. 
-
-    Format requirement:
-    {
-      "merchant": "string",
-      "category": "string",
-      "totalAmount": number,
-      "tax": number,
-      "date": "YYYY-MM-DDTHH:mm:ss.sssZ",
-      "items": [
-        {
-          "name": "string",
-          "price": number,
-          "qty": number
-        }
-      ]
-    }
-    
-    Rules:
-    - 'category' must be exactly one of: Groceries, Transport, Dining, Shopping, Health, Entertainment. If none fit, use 'Lainnya'.
-    - 'totalAmount' should be the final parsed total of the receipt.
-    - 'tax' should be the total tax and service charge combined (look for terms like Tax, PPN, PB1, Service Charge, or SC). If no tax or service charge is found, set it to 0.
-    - 'date' should be an ISO 8601 formatted string. If no exact time is found, default to 12:00:00.000Z.
-    - For 'items', 'price' is the price per single unit, and 'qty' is the quantity purchased.
-    
-    OCR Text:
-    ${ocrText}
-  `;
-
   const ai = new GoogleGenAI({ apiKey: key });
+
+  const receiptSchema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+      merchant: {
+        type: Type.STRING,
+        description: "The name of the store or restaurant."
+      },
+      category: {
+        type: Type.STRING,
+        enum: ["Groceries", "Transport", "Dining", "Shopping", "Health", "Entertainment", "Utilities", "Education", "Personal", "Gifts", "Invesment", "Others"],
+        description: "Category the purchase"
+      },
+      totalAmmount: {
+        type: Type.INTEGER,
+        description: "The final parsed total of the receipt"
+      },
+      tax: {
+        type: Type.INTEGER,
+        description: "Total tax and service charge combined (PPN, PB1, Service Charge). Return 0 if none"
+      },
+      date: {
+        type: Type.STRING,
+        description: "ISO 8601 formatted date string"
+      },
+      items: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            price: { type: Type.INTEGER, description: "Price per single unit" },
+            qty: { type: Type.INTEGER }
+          },
+          required: ["name", "price", "qty"]
+        }
+      },
+    },
+    required: ["merchant", "category", "totalAmmount", "tax", "date", "items"]
+  }
+
+  const prompt = `Extract receipt data from this OCR text: \n\n ${ocrText}`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
+        responseSchema: receiptSchema
       }
     });
 
