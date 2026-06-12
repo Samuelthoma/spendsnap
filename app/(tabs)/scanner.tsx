@@ -8,12 +8,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
+import { alert } from 'react-native-alert-queue';
 
 
 export default function ScannerScreen() {
@@ -45,7 +45,11 @@ export default function ScannerScreen() {
     if (!cameraRef.current) return;
 
     if (!apiKey) {
-      Alert.alert("API Key Hilang", "Harap masukkan Google AI Studio Key di menu Pengaturan.");
+      await alert.show({
+        title: "API Key Hilang",
+        message: "Harap masukkan Google AI Studio Key di menu Pengaturan.",
+      });
+
       router.back();
       return;
     }
@@ -83,7 +87,10 @@ export default function ScannerScreen() {
       }
 
     } catch (error: any) {
-      Alert.alert("Pemindaian Gagal", error.message || "Terjadi kesalahan saat memproses struk.");
+      await alert.show({
+        title: "Pemindaian Gagal",
+        message: error?.message || "Terjadi kesalahan saat memproses struk.",
+      });
       setIsProcessing(false);
     } finally {
       setIsProcessing(false)

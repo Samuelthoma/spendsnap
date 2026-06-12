@@ -7,7 +7,6 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Switch,
@@ -16,8 +15,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { alert } from 'react-native-alert-queue';
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useAppStore } from "../../store/useAppStore"; // Adjust path if needed
+import { useAppStore } from "../../store/useAppStore";
 
 const SettingRow = ({
   icon,
@@ -60,23 +60,30 @@ export default function SettingsScreen() {
 
   if (!fontsLoaded) return null;
 
-  const handleSaveKey = () => {
+  const handleSaveKey = async () => {
     if (!apiKey.trim()) {
-      Alert.alert("Gagal", "API Key tidak boleh kosong.");
+      await alert.show({
+        title: "Gagal",
+        message: "API Key tidak boleh kosong.",
+      });
       return;
     }
-    Alert.alert("Tersimpan", "API Key Google AI Studio telah diperbarui.");
+
+    await alert.show({
+      title: "Tersimpan",
+      message: "API Key Google AI Studio telah diperbarui.",
+    });
   };
 
-  const handleClearData = () => {
-    Alert.alert(
-      "Hapus Data",
-      "Yakin ingin menghapus API Key dan preferensi Anda?",
-      [
-        { text: "Batal", style: "cancel" },
-        { text: "Hapus", style: "destructive", onPress: clearData },
-      ],
-    );
+  const handleClearData = async () => {
+    const confirmed = await alert.confirm({
+      title: "Hapus Data",
+      message: "Yakin ingin menghapus API Key dan preferensi Anda?",
+    });
+
+    if (!confirmed) return;
+
+    clearData();
   };
 
   return (

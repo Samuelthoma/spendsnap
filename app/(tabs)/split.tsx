@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { alert } from 'react-native-alert-queue';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const formatIDR = (value: number) => Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -30,7 +31,7 @@ export default function SplitBillScreen() {
     const addPerson = () => setParticipants([...participants, { id: `p-${Date.now()}`, name: '' }]);
     const updatePersonName = (id: string, name: string) => setParticipants(participants.map(p => p.id === id ? { ...p, name } : p));
     const removePerson = (id: string) => {
-        if (participants.length <= 1) return alert("You must have at least one person.");
+        if (participants.length <= 1) return alert.error(new Error('Hold on! Please assign all remaining items before calculating the split.'));
         setParticipants(participants.filter(p => p.id !== id));
 
         setAssignments(prev => {
@@ -65,7 +66,7 @@ export default function SplitBillScreen() {
         if (participants.every(p => p.name.trim() !== '')) {
             router.push({ pathname: '/scanner', params: { fromSplit: 'true' } });
         } else {
-            alert("Please enter names for everyone splitting the bill.");
+            alert.error(new Error('Please enter names for everyone splitting the bill.'));
         }
     };
 
@@ -75,7 +76,7 @@ export default function SplitBillScreen() {
         scannedItems.forEach(item => { assignedItems += getAssignedTotal(item.id); });
 
         if (assignedItems < totalItems) {
-            alert("Hold on! Please assign all remaining items before calculating the split.");
+            alert.error(new Error('Hold on! Please assign all remaining items before calculating the split.'));
             return;
         }
         setStep(3);

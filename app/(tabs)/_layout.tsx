@@ -5,6 +5,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
+import { AlertContainer } from 'react-native-alert-queue';
 
 export default function TabLayout() {
   let [fontsLoaded] = useFonts({
@@ -68,6 +69,7 @@ export default function TabLayout() {
           }}
         />
       </Tabs>
+      <AlertContainer />
     </View>
   );
 }
