@@ -14,7 +14,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Modal,
   StyleSheet,
@@ -23,6 +22,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { alert } from 'react-native-alert-queue';
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -94,14 +94,15 @@ export default function ReviewScreen() {
 
   const handleSaveToDatabase = async () => {
     if (items.length === 0) {
-      Alert.alert(
-        "Validasi",
-        "Minimal harus ada satu rincian item untuk disimpan.",
+      alert.error(
+        new Error("Minimal harus ada satu rincian item untuk disimpan.")
       );
       return;
     }
     if (!receipt.merchant.trim()) {
-      Alert.alert("Validasi", "Nama merchant tidak boleh kosong.");
+      alert.error(
+        new Error("Nama merchant tidak boleh kosong.")
+      );
       return;
     }
 
@@ -122,16 +123,18 @@ export default function ReviewScreen() {
 
       await insertReceiptWithDetails(payload);
 
-      Alert.alert(
-        "Tersimpan!",
-        "Data struk berhasil ditambahkan ke riwayat Anda.",
-        [{ text: "OK", onPress: () => router.dismissAll() }],
-      );
+      const acknowledged = await alert.confirm({
+        title: "Tersimpan!",
+        message: "Data struk berhasil ditambahkan ke riwayat Anda.",
+      });
+
+      if (acknowledged) {
+        router.replace("/");
+      }
     } catch (error) {
       console.error("Failed to save receipt:", error);
-      Alert.alert(
-        "Gagal Menyimpan",
-        "Terjadi kesalahan saat menyimpan ke database lokal.",
+      alert.error(
+        new Error("Terjadi kesalahan saat menyimpan ke database lokal.")
       );
     } finally {
       setIsSaving(false);
@@ -187,7 +190,7 @@ export default function ReviewScreen() {
 
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => router.back()}
+          onPress={() => router.replace("/")}
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={24} color="#111827" />

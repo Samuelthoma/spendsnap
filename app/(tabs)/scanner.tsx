@@ -1,24 +1,27 @@
+import { useAppStore } from '@/store/useAppStore';
+import { useReceiptStore } from '@/store/useReceiptStore';
 import { Ionicons } from '@expo/vector-icons';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Schema, Type } from "@google/genai";
 import TextRecognition from '@react-native-ml-kit/text-recognition';
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   StyleSheet,
   Text,
   TouchableOpacity,
   View
 } from 'react-native';
-import { useAppStore } from '../store/useAppStore';
+import { alert } from 'react-native-alert-queue';
+
 
 export default function ScannerScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [isProcessing, setIsProcessing] = useState(false);
   const cameraRef = useRef<any>(null);
-
+  const { setReceiptData } = useReceiptStore();
+  const { fromSplit } = useLocalSearchParams();
   const { apiKey } = useAppStore();
 
   if (!permission) return <View style={styles.container} />;
@@ -42,7 +45,11 @@ export default function ScannerScreen() {
     if (!cameraRef.current) return;
 
     if (!apiKey) {
-      Alert.alert("API Key Hilang", "Harap masukkan Google AI Studio Key di menu Pengaturan.");
+      await alert.show({
+        title: "API Key Hilang",
+        message: "Harap masukkan Google AI Studio Key di menu Pengaturan.",
+      });
+
       router.back();
       return;
     }
@@ -51,7 +58,6 @@ export default function ScannerScreen() {
 
     try {
       const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
-
       const result = await TextRecognition.recognize(photo.uri);
       const rawText = result.text;
 
@@ -61,14 +67,33 @@ export default function ScannerScreen() {
 
       const aiResponse = await processWithGemini(rawText, apiKey);
 
-      router.replace({
-        pathname: '/review',
-        params: { extractedData: JSON.stringify(aiResponse) }
-      });
+      const formattedItems = (aiResponse.items || []).map((item: any, index: number) => ({
+        ...item,
+        id: `item-${Date.now()}-${index}`,
+        total: item.price * item.qty
+      }));
+
+
+      if (fromSplit === 'true') {
+        router.setParams({ fromSplit: '' });
+        setReceiptData(formattedItems, aiResponse.tax || 0);
+        router.replace('/split');
+        console.log(aiResponse)
+      } else {
+        router.replace({
+          pathname: '/review',
+          params: { extractedData: JSON.stringify(aiResponse) }
+        });
+      }
 
     } catch (error: any) {
-      Alert.alert("Pemindaian Gagal", error.message || "Terjadi kesalahan saat memproses struk.");
+      await alert.show({
+        title: "Pemindaian Gagal",
+        message: error?.message || "Terjadi kesalahan saat memproses struk.",
+      });
       setIsProcessing(false);
+    } finally {
+      setIsProcessing(false)
     }
   };
 
@@ -112,42 +137,57 @@ export default function ScannerScreen() {
 }
 
 const processWithGemini = async (ocrText: string, key: string) => {
-  const prompt = `
-    Extract data from the provided OCR receipt text. Return ONLY a valid JSON object. No markdown formatting, no explanations. 
-
-    Format requirement:
-    {
-      "merchant": "string",
-      "category": "string",
-      "totalAmount": number,
-      "date": "YYYY-MM-DDTHH:mm:ss.sssZ",
-      "items": [
-        {
-          "name": "string",
-          "price": number,
-          "qty": number
-        }
-      ]
-    }
-    
-    Rules:
-    - 'category' must be exactly one of: Groceries, Transport, Dining, Shopping, Health, Entertainment. If none fit, use 'Lainnya'.
-    - 'totalAmount' should be the final parsed total of the receipt.
-    - 'date' should be an ISO 8601 formatted string. If no exact time is found, default to 12:00:00.000Z.
-    - For 'items', 'price' is the price per single unit, and 'qty' is the quantity purchased.
-    
-    OCR Text:
-    ${ocrText}
-  `;
-
   const ai = new GoogleGenAI({ apiKey: key });
+
+  const receiptSchema: Schema = {
+    type: Type.OBJECT,
+    properties: {
+      merchant: {
+        type: Type.STRING,
+        description: "The name of the store or restaurant."
+      },
+      category: {
+        type: Type.STRING,
+        enum: ["Groceries", "Transport", "Dining", "Shopping", "Health", "Entertainment", "Utilities", "Education", "Personal", "Gifts", "Invesment", "Others"],
+        description: "Category the purchase"
+      },
+      totalAmmount: {
+        type: Type.INTEGER,
+        description: "The final parsed total of the receipt"
+      },
+      tax: {
+        type: Type.INTEGER,
+        description: "Total tax and service charge combined (PPN, PB1, Service Charge). Return 0 if none"
+      },
+      date: {
+        type: Type.STRING,
+        description: "ISO 8601 formatted date string"
+      },
+      items: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            name: { type: Type.STRING },
+            price: { type: Type.INTEGER, description: "Price per single unit" },
+            qty: { type: Type.INTEGER }
+          },
+          required: ["name", "price", "qty"]
+        }
+      },
+    },
+    required: ["merchant", "category", "totalAmmount", "tax", "date", "items"]
+  }
+
+  const prompt = `Extract receipt data from this OCR text: \n\n ${ocrText}`;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.5-flash",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
+        responseSchema: receiptSchema
       }
     });
 

@@ -1,28 +1,28 @@
 import {
-    SpaceGrotesk_500Medium,
-    SpaceGrotesk_600SemiBold,
-    SpaceGrotesk_700Bold,
-    useFonts,
+  SpaceGrotesk_500Medium,
+  SpaceGrotesk_600SemiBold,
+  SpaceGrotesk_700Bold,
+  useFonts,
 } from "@expo-google-fonts/space-grotesk";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { alert } from 'react-native-alert-queue';
 import { getCategoryVisuals } from "../constants/categories";
 import {
-    deleteReceipt,
-    getReceiptById,
-    getReceiptDetails,
+  deleteReceipt,
+  getReceiptById,
+  getReceiptDetails,
 } from "../db/queries/receipts";
 
 const formatIDR = (value: number) =>
@@ -57,7 +57,7 @@ export default function DetailsScreen() {
         }
       } catch (error) {
         console.error("Failed to load receipt details:", error);
-        Alert.alert("Error", "Gagal memuat detail struk.");
+        alert.error(new Error('Gagal memuat detail struk.'));
       } finally {
         setIsLoading(false);
       }
@@ -66,29 +66,29 @@ export default function DetailsScreen() {
     fetchFullReceipt();
   }, [id]);
 
-  const handleDelete = () => {
-    Alert.alert(
-      "Hapus Transaksi",
-      "Apakah Anda yakin ingin menghapus data struk ini secara permanen?",
-      [
-        { text: "Batal", style: "cancel" },
-        {
-          text: "Hapus",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              if (typeof id === "string") {
-                await deleteReceipt(id);
-                // Go back to the previous screen (Home)
-                router.back();
-              }
-            } catch (error) {
-              Alert.alert("Gagal", "Tidak dapat menghapus struk saat ini.");
-            }
-          },
-        },
-      ],
-    );
+  const handleDelete = async () => {
+    const confirmed = await alert.confirm({
+      title: "Hapus Transaksi",
+      message: "Apakah Anda yakin ingin menghapus data struk ini secara permanen?",
+    });
+
+    if (!confirmed) return;
+
+    try {
+      if (typeof id === "string") {
+        await deleteReceipt(id);
+
+        if (router.canGoBack()) {
+          router.back();
+        } else {
+          router.replace("/");
+        }
+      }
+    } catch (error) {
+      alert.error(
+        new Error("Tidak dapat menghapus struk saat ini.")
+      );
+    }
   };
 
   if (!fontsLoaded) return null;
