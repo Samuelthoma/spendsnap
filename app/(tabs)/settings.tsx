@@ -5,6 +5,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/space-grotesk";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/constants/theme";
 import React from "react";
 import {
   ScrollView,
@@ -27,9 +28,10 @@ const SettingRow = ({
   value,
   isDestructive = false,
   onPress,
+  theme,
 }: any) => (
   <TouchableOpacity
-    style={styles.settingRow}
+    style={[styles.settingRow, { borderBottomColor: theme.border }]}
     onPress={onPress}
     activeOpacity={0.7}
   >
@@ -37,18 +39,19 @@ const SettingRow = ({
       <View style={[styles.iconContainer, { backgroundColor: iconBg }]}>
         <Ionicons name={icon} size={20} color={iconColor} />
       </View>
-      <Text style={[styles.rowLabel, isDestructive && { color: "#EF4444" }]}>
+      <Text style={[styles.rowLabel, { color: isDestructive ? theme.danger : theme.text }, isDestructive && { color: theme.danger }]}>
         {label}
       </Text>
     </View>
     <View style={styles.rowRight}>
-      {value ? <Text style={styles.rowValue}>{value}</Text> : null}
-      <Ionicons name="chevron-forward" size={18} color="#D1D5DB" />
+      {value ? <Text style={[styles.rowValue, { color: theme.textMuted }]}>{value}</Text> : null}
+      <Ionicons name="chevron-forward" size={18} color={theme.border} />
     </View>
   </TouchableOpacity>
 );
 
 export default function SettingsScreen() {
+  const theme = useTheme();
   const { apiKey, setApiKey, isDarkMode, toggleDarkMode, clearData } =
     useAppStore();
 
@@ -87,9 +90,9 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <View style={styles.stickyHeader}>
-        <Text style={styles.headerTitle}>Pengaturan</Text>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={["top"]}>
+      <View style={[styles.stickyHeader, { backgroundColor: theme.headerBg, borderBottomColor: theme.border }]}>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Pengaturan</Text>
       </View>
 
       <ScrollView
@@ -99,25 +102,25 @@ export default function SettingsScreen() {
       >
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Konfigurasi AI</Text>
-          <View style={styles.apiCard}>
+          <View style={[styles.apiCard, { backgroundColor: theme.surface }]}>
             <View style={styles.apiHeader}>
-              <Ionicons name="key" size={18} color="#9CA3AF" />
-              <Text style={styles.apiTitle}>Google AI Studio Key</Text>
+              <Ionicons name="key" size={18} color={theme.textMuted} />
+              <Text style={[styles.apiTitle, { color: theme.text }]}>Google AI Studio Key</Text>
             </View>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
               placeholder="Masukkan API Key Anda..."
-              placeholderTextColor="#9CA3AF"
+              placeholderTextColor={theme.textMuted}
               value={apiKey}
               onChangeText={setApiKey}
               secureTextEntry
               autoCapitalize="none"
             />
-            <TouchableOpacity style={styles.saveButton} onPress={handleSaveKey}>
+            <TouchableOpacity style={[styles.saveButton, { backgroundColor: theme.deepNavy }]} onPress={handleSaveKey}>
               <Text style={styles.saveButtonText}>Simpan Key</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.helperText}>
+          <Text style={[styles.helperText, { color: theme.textSecondary }]}>
             Key ini digunakan untuk memproses struk menggunakan Gemini AI secara
             lokal di perangkat Anda.
           </Text>
@@ -126,19 +129,19 @@ export default function SettingsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionLabel}>Preferensi</Text>
           <View style={styles.listContainer}>
-            <View style={styles.settingRow}>
+            <View style={[styles.settingRow, { borderBottomColor: theme.border }]}>
               <View style={styles.rowLeft}>
                 <View
                   style={[styles.iconContainer, { backgroundColor: "#E0E7FF" }]}
                 >
                   <Ionicons name="moon" size={20} color="#6366F1" />
                 </View>
-                <Text style={styles.rowLabel}>Mode Gelap</Text>
+                <Text style={[styles.rowLabel, { color: theme.text }]}>Mode Gelap</Text>
               </View>
               <Switch
                 value={isDarkMode}
                 onValueChange={toggleDarkMode}
-                trackColor={{ false: "#E5E7EB", true: "#111827" }}
+                trackColor={{ false: theme.border, true: theme.indigo }}
               />
             </View>
             <SettingRow
@@ -147,6 +150,7 @@ export default function SettingsScreen() {
               iconColor="#EF4444"
               label="Notifikasi"
               value="Aktif"
+              theme={theme}
             />
             <SettingRow
               icon="wallet"
@@ -154,6 +158,7 @@ export default function SettingsScreen() {
               iconColor="#3B82F6"
               label="Mata Uang"
               value="IDR (Rp)"
+              theme={theme}
             />
           </View>
         </View>
@@ -166,6 +171,7 @@ export default function SettingsScreen() {
               iconBg="#F3F4F6"
               iconColor="#6B7280"
               label="Tentang SpendSnap"
+              theme={theme}
             />
             <SettingRow
               icon="trash"
@@ -174,11 +180,12 @@ export default function SettingsScreen() {
               label="Hapus Semua Preferensi"
               isDestructive={true}
               onPress={handleClearData}
+              theme={theme}
             />
           </View>
         </View>
 
-        <Text style={styles.versionText}>Versi 1.0.0 (Personal Build)</Text>
+        <Text style={[styles.versionText, { color: theme.textMuted }]}>Versi 1.0.0 (Personal Build)</Text>
 
         <View style={{ height: 100 }} />
       </ScrollView>
@@ -189,21 +196,17 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F8FAFC", // Soft cool gray
   },
   stickyHeader: {
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 16,
-    backgroundColor: "#F8FAFC", // Match background
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9", // Very soft divider
     zIndex: 10,
   },
   headerTitle: {
     fontSize: 28,
-    fontFamily: "SpaceGrotesk_700Bold", // Updated
-    color: "#0F172A", // Deep navy
+    fontFamily: "SpaceGrotesk_700Bold",
     letterSpacing: -0.5,
   },
   container: { flex: 1, paddingHorizontal: 20 },
@@ -212,18 +215,16 @@ const styles = StyleSheet.create({
   section: { marginBottom: 32 },
   sectionLabel: {
     fontSize: 13,
-    fontFamily: "SpaceGrotesk_600SemiBold", // Updated
-    color: "#6366F1", // Indigo accent
+    fontFamily: "SpaceGrotesk_600SemiBold",
+    color: "#6366F1",
     textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: 12,
   },
 
   apiCard: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     padding: 16,
-    // Applied the soft indigo shadow
     shadowColor: "#6366F1",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
@@ -233,44 +234,38 @@ const styles = StyleSheet.create({
   apiHeader: { flexDirection: "row", alignItems: "center", marginBottom: 12 },
   apiTitle: {
     fontSize: 15,
-    fontFamily: "SpaceGrotesk_700Bold", // Updated
-    color: "#0F172A",
+    fontFamily: "SpaceGrotesk_700Bold",
     marginLeft: 8,
   },
   input: {
-    backgroundColor: "#F8FAFC",
     borderRadius: 12,
-    padding: 16, // Slightly taller for premium feel
+    padding: 16,
     fontSize: 15,
-    fontFamily: "SpaceGrotesk_600SemiBold", // Updated
-    color: "#0F172A",
+    fontFamily: "SpaceGrotesk_600SemiBold",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
     marginBottom: 12,
   },
   saveButton: {
-    backgroundColor: "#1E1B4B", // Deep navy
     borderRadius: 12,
     padding: 16,
     alignItems: "center",
   },
   saveButtonText: {
     color: "#FFFFFF",
-    fontFamily: "SpaceGrotesk_700Bold", // Updated
+    fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 15,
     letterSpacing: 0.5,
   },
   helperText: {
     fontSize: 13,
-    color: "#64748B",
-    fontFamily: "SpaceGrotesk_500Medium", // Updated
+    fontFamily: "SpaceGrotesk_500Medium",
     marginTop: 8,
     paddingHorizontal: 4,
     lineHeight: 18,
   },
 
   listContainer: {
-    backgroundColor: "transparent", // Let the safeArea color show through
+    backgroundColor: "transparent",
   },
   settingRow: {
     flexDirection: "row",
@@ -278,7 +273,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: "#F1F5F9",
   },
   rowLeft: { flexDirection: "row", alignItems: "center" },
   iconContainer: {
@@ -288,7 +282,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
-    backgroundColor: "#FFFFFF", // White icon boxes pop against the gray
     shadowColor: "#6366F1",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
@@ -297,22 +290,19 @@ const styles = StyleSheet.create({
   },
   rowLabel: {
     fontSize: 16,
-    fontFamily: "SpaceGrotesk_600SemiBold", // Updated
-    color: "#0F172A",
+    fontFamily: "SpaceGrotesk_600SemiBold",
   },
   rowRight: { flexDirection: "row", alignItems: "center" },
   rowValue: {
     fontSize: 14,
-    color: "#94A3B8",
-    fontFamily: "SpaceGrotesk_500Medium", // Updated
+    fontFamily: "SpaceGrotesk_500Medium",
     marginRight: 8,
   },
 
   versionText: {
     textAlign: "center",
-    color: "#CBD5E1",
     fontSize: 12,
-    fontFamily: "SpaceGrotesk_600SemiBold", // Updated
+    fontFamily: "SpaceGrotesk_600SemiBold",
     marginTop: -8,
     letterSpacing: 1,
   },

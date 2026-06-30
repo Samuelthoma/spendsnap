@@ -5,6 +5,7 @@ import {
   useFonts,
 } from "@expo-google-fonts/space-grotesk";
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/constants/theme";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -29,6 +30,7 @@ const formatIDR = (value: number) =>
   value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 
 export default function DetailsScreen() {
+  const theme = useTheme();
   const { id } = useLocalSearchParams();
   const [receipt, setReceipt] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -98,10 +100,10 @@ export default function DetailsScreen() {
       <SafeAreaView
         style={[
           styles.safeArea,
-          { justifyContent: "center", alignItems: "center" },
+          { backgroundColor: theme.background, justifyContent: "center", alignItems: "center" },
         ]}
       >
-        <ActivityIndicator size="large" color="#111827" />
+        <ActivityIndicator size="large" color={theme.text} />
       </SafeAreaView>
     );
   }
@@ -111,17 +113,17 @@ export default function DetailsScreen() {
       <SafeAreaView
         style={[
           styles.safeArea,
-          { justifyContent: "center", alignItems: "center" },
+          { backgroundColor: theme.background, justifyContent: "center", alignItems: "center" },
         ]}
       >
-        <Text style={{ fontFamily: "Inter_500Medium", color: "#6B7280" }}>
+        <Text style={{ fontFamily: "Inter_500Medium", color: theme.textSecondary }}>
           Struk tidak ditemukan.
         </Text>
         <TouchableOpacity
           onPress={() => router.back()}
           style={{ marginTop: 16 }}
         >
-          <Text style={{ color: "#007AFF", fontFamily: "Inter_600SemiBold" }}>
+          <Text style={{ color: theme.indigo, fontFamily: "Inter_600SemiBold" }}>
             Kembali
           </Text>
         </TouchableOpacity>
@@ -144,17 +146,17 @@ export default function DetailsScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <View style={styles.header}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={["top", "bottom"]}>
+      <View style={[styles.header, { backgroundColor: theme.headerBg }]}>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: theme.surface }]}
         >
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
         <View style={styles.headerActions}>
-          <TouchableOpacity onPress={handleDelete} style={styles.iconButton}>
-            <Ionicons name="trash-outline" size={22} color="#EF4444" />
+          <TouchableOpacity onPress={handleDelete} style={[styles.iconButton, { backgroundColor: theme.surface }]}>
+            <Ionicons name="trash-outline" size={22} color={theme.danger} />
           </TouchableOpacity>
         </View>
       </View>
@@ -164,7 +166,7 @@ export default function DetailsScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.receiptCard}>
+        <View style={[styles.receiptCard, { backgroundColor: theme.surface }]}>
           <View style={styles.summarySection}>
             <View style={[styles.iconLarge, { backgroundColor: visual.bg }]}>
               <Ionicons
@@ -173,8 +175,8 @@ export default function DetailsScreen() {
                 color={visual.color}
               />
             </View>
-            <Text style={styles.merchantName}>{receipt.merchant}</Text>
-            <Text style={styles.totalAmount}>
+            <Text style={[styles.merchantName, { color: theme.text }]}>{receipt.merchant}</Text>
+            <Text style={[styles.totalAmount, { color: theme.deepNavy }]}>
               Rp {formatIDR(receipt.total_amount)}
             </Text>
 
@@ -190,17 +192,17 @@ export default function DetailsScreen() {
               </View>
             </View>
 
-            <Text style={styles.dateText}>{formattedDate}</Text>
+            <Text style={[styles.dateText, { color: theme.textSecondary }]}>{formattedDate}</Text>
           </View>
 
-          <View style={styles.separatorContainer}>
-            <View style={styles.cutoutLeft} />
-            <View style={styles.dashedLine} />
-            <View style={styles.cutoutRight} />
+          <View style={[styles.separatorContainer, { backgroundColor: theme.surface }]}>
+            <View style={[styles.cutoutLeft, { backgroundColor: theme.background }]} />
+            <View style={[styles.dashedLine, { borderColor: theme.border }]} />
+            <View style={[styles.cutoutRight, { backgroundColor: theme.background }]} />
           </View>
 
           <View style={styles.detailsSection}>
-            <Text style={styles.sectionTitle}>Rincian Pembelian</Text>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>Rincian Pembelian</Text>
 
             {receipt.items && receipt.items.length > 0 ? (
               receipt.items.map((item: any) => {
@@ -208,13 +210,13 @@ export default function DetailsScreen() {
                 return (
                   <View key={item.id} style={styles.itemRow}>
                     <View style={styles.itemRowLeft}>
-                      <Text style={styles.itemName}>{item.item_name}</Text>
-                      <Text style={styles.itemQtyPrice}>
+                      <Text style={[styles.itemName, { color: theme.text }]}>{item.item_name}</Text>
+                      <Text style={[styles.itemQtyPrice, { color: theme.textSecondary }]}>
                         {item.quantity} x Rp {formatIDR(item.price)}
                       </Text>
                     </View>
                     <View style={styles.itemRowRight}>
-                      <Text style={styles.itemTotal}>
+                      <Text style={[styles.itemTotal, { color: theme.text }]}>
                         Rp {formatIDR(itemTotal)}
                       </Text>
                     </View>
@@ -225,7 +227,7 @@ export default function DetailsScreen() {
               <Text
                 style={{
                   fontFamily: "Inter_500Medium",
-                  color: "#9CA3AF",
+                  color: theme.textMuted,
                   fontStyle: "italic",
                 }}
               >
@@ -233,16 +235,16 @@ export default function DetailsScreen() {
               </Text>
             )}
 
-            <View style={styles.metadataSection}>
+            <View style={[styles.metadataSection, { borderTopColor: theme.surfaceAlt }]}>
               <View style={styles.metadataRow}>
-                <Text style={styles.metadataLabel}>ID Transaksi</Text>
-                <Text style={styles.metadataValue}>
+                <Text style={[styles.metadataLabel, { color: theme.textMuted }]}>ID Transaksi</Text>
+                <Text style={[styles.metadataValue, { color: theme.textSecondary }]}>
                   {receipt.id.split("-")[0].toUpperCase()}
                 </Text>
               </View>
               <View style={styles.metadataRow}>
-                <Text style={styles.metadataLabel}>Sumber</Text>
-                <Text style={styles.metadataValue}>AI Scanner</Text>
+                <Text style={[styles.metadataLabel, { color: theme.textMuted }]}>Sumber</Text>
+                <Text style={[styles.metadataValue, { color: theme.textSecondary }]}>AI Scanner</Text>
               </View>
             </View>
           </View>
@@ -256,7 +258,6 @@ export default function DetailsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
   },
   header: {
     flexDirection: "row",
@@ -264,12 +265,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#F8FAFC",
   },
   backButton: {
     padding: 8,
     marginLeft: -8,
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     shadowColor: "#6366F1",
     shadowOffset: { width: 0, height: 4 },
@@ -282,7 +281,6 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: 8,
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     shadowColor: "#6366F1",
     shadowOffset: { width: 0, height: 4 },
@@ -299,7 +297,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   receiptCard: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     shadowColor: "#6366F1",
     shadowOffset: { width: 0, height: 8 },
@@ -323,14 +320,12 @@ const styles = StyleSheet.create({
   merchantName: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 18,
-    color: "#0F172A",
     marginBottom: 8,
     textTransform: "uppercase",
   },
   totalAmount: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 40,
-    color: "#1E1B4B",
     marginBottom: 16,
     letterSpacing: -1.5,
   },
@@ -351,20 +346,17 @@ const styles = StyleSheet.create({
   dateText: {
     fontFamily: "SpaceGrotesk_500Medium",
     fontSize: 14,
-    color: "#64748B",
   },
   separatorContainer: {
     flexDirection: "row",
     alignItems: "center",
     height: 24,
-    backgroundColor: "#FFFFFF",
     position: "relative",
   },
   cutoutLeft: {
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#F8FAFC",
     position: "absolute",
     left: -12,
   },
@@ -372,7 +364,6 @@ const styles = StyleSheet.create({
     flex: 1,
     height: 1,
     borderWidth: 1,
-    borderColor: "#E2E8F0",
     borderStyle: "dashed",
     marginHorizontal: 16,
   },
@@ -380,7 +371,6 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: "#F8FAFC",
     position: "absolute",
     right: -12,
   },
@@ -391,7 +381,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 16,
-    color: "#0F172A",
     marginBottom: 20,
     letterSpacing: -0.5,
   },
@@ -407,13 +396,11 @@ const styles = StyleSheet.create({
   itemName: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 15,
-    color: "#0F172A",
     marginBottom: 4,
   },
   itemQtyPrice: {
     fontFamily: "SpaceGrotesk_500Medium",
     fontSize: 13,
-    color: "#64748B",
   },
   itemRowRight: {
     justifyContent: "center",
@@ -421,13 +408,11 @@ const styles = StyleSheet.create({
   itemTotal: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 15,
-    color: "#0F172A",
   },
   metadataSection: {
     marginTop: 24,
     paddingTop: 20,
     borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
   },
   metadataRow: {
     flexDirection: "row",
@@ -437,11 +422,9 @@ const styles = StyleSheet.create({
   metadataLabel: {
     fontFamily: "SpaceGrotesk_500Medium",
     fontSize: 13,
-    color: "#94A3B8",
   },
   metadataValue: {
     fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 13,
-    color: "#475569",
   },
 });

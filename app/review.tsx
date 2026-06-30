@@ -1,4 +1,5 @@
 import { CATEGORIES, getCategoryVisuals } from "@/constants/categories";
+import { useTheme } from "@/constants/theme";
 import {
   insertReceiptWithDetails,
   ReceiptPayload,
@@ -26,6 +27,7 @@ import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ReviewScreen() {
+  const theme = useTheme();
   const params = useLocalSearchParams();
 
   const [receipt, setReceipt] = useState({ merchant: "", category: "" });
@@ -139,14 +141,14 @@ export default function ReviewScreen() {
   const selectedCat = getCategoryVisuals(receipt.category);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={["top", "bottom"]}>
       <Modal visible={showCategoryPicker} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <View style={[styles.modalOverlay, { backgroundColor: theme.modalOverlay }]}>
+          <View style={[styles.modalContent, { backgroundColor: theme.background }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Pilih Kategori Struk</Text>
+              <Text style={[styles.modalTitle, { color: theme.text }]}>Pilih Kategori Struk</Text>
               <TouchableOpacity onPress={() => setShowCategoryPicker(false)}>
-                <Ionicons name="close" size={24} color="#111827" />
+                <Ionicons name="close" size={24} color={theme.text} />
               </TouchableOpacity>
             </View>
             <FlatList
@@ -155,7 +157,7 @@ export default function ReviewScreen() {
               numColumns={2}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  style={styles.categoryOption}
+                  style={[styles.categoryOption, { backgroundColor: theme.surface }]}
                   onPress={() => {
                     setReceipt({ ...receipt, category: item.value });
                     setShowCategoryPicker(false);
@@ -170,7 +172,7 @@ export default function ReviewScreen() {
                       color={item.color}
                     />
                   </View>
-                  <Text style={styles.categoryOptionLabel} numberOfLines={1}>
+                  <Text style={[styles.categoryOptionLabel, { color: theme.textSecondary }]} numberOfLines={1}>
                     {item.label}
                   </Text>
                 </TouchableOpacity>
@@ -181,14 +183,14 @@ export default function ReviewScreen() {
         </View>
       </Modal>
 
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: theme.headerBg }]}>
         <TouchableOpacity
           onPress={() => router.replace("/")}
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: theme.surface }]}
         >
-          <Ionicons name="arrow-back" size={24} color="#111827" />
+          <Ionicons name="arrow-back" size={24} color={theme.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Tinjau Struk</Text>
+        <Text style={[styles.headerTitle, { color: theme.text }]}>Tinjau Struk</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -199,27 +201,28 @@ export default function ReviewScreen() {
         extraScrollHeight={40}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.masterCard}>
+        <View style={[styles.masterCard, { backgroundColor: theme.surface }]}>
           <View style={styles.cardHeader}>
-            <Ionicons name="receipt-outline" size={18} color="#9CA3AF" />
+            <Ionicons name="receipt-outline" size={18} color={theme.textMuted} />
             <Text style={styles.cardTitle}>Data Utama</Text>
           </View>
 
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Merchant</Text>
+            <Text style={[styles.label, { color: theme.textSecondary }]}>Merchant</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
               value={receipt.merchant}
               onChangeText={(val) => setReceipt({ ...receipt, merchant: val })}
               placeholder="Nama Toko"
+              placeholderTextColor={theme.textMuted}
             />
           </View>
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1.2, marginRight: 12 }]}>
-              <Text style={styles.label}>Kategori Struk</Text>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Kategori Struk</Text>
               <TouchableOpacity
-                style={styles.dropdownTrigger}
+                style={[styles.dropdownTrigger, { backgroundColor: theme.inputBg, borderColor: theme.border }]}
                 onPress={() => setShowCategoryPicker(true)}
               >
                 <View
@@ -234,18 +237,18 @@ export default function ReviewScreen() {
                     color={selectedCat.color}
                   />
                 </View>
-                <Text style={styles.dropdownText} numberOfLines={1}>
+                <Text style={[styles.dropdownText, { color: theme.text }]} numberOfLines={1}>
                   {selectedCat.label}
                 </Text>
-                <Ionicons name="chevron-down" size={16} color="#9CA3AF" />
+                <Ionicons name="chevron-down" size={16} color={theme.textMuted} />
               </TouchableOpacity>
             </View>
 
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Total (Rp)</Text>
-              <View style={styles.readOnlyInput}>
+              <Text style={[styles.label, { color: theme.textSecondary }]}>Total (Rp)</Text>
+              <View style={[styles.readOnlyInput, { backgroundColor: theme.inputBg, borderColor: theme.indigo }]}>
                 <Text
-                  style={styles.readOnlyText}
+                  style={[styles.readOnlyText, { color: theme.deepNavy }]}
                   numberOfLines={1}
                   adjustsFontSizeToFit
                 >
@@ -256,40 +259,41 @@ export default function ReviewScreen() {
           </View>
         </View>
 
-        <View style={styles.divider} />
+        <View style={[styles.divider, { backgroundColor: theme.border }]} />
 
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Rincian Item ({items.length})</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Rincian Item ({items.length})</Text>
         </View>
 
         {items.map((item, index) => (
-          <View key={item.id} style={styles.itemCard}>
+          <View key={item.id} style={[styles.itemCard, { backgroundColor: theme.surface }]}>
             <View style={styles.itemCardTop}>
-              <View style={styles.itemNumberBox}>
-                <Text style={styles.itemNumber}>{index + 1}</Text>
+              <View style={[styles.itemNumberBox, { backgroundColor: theme.surfaceAlt }]}>
+                <Text style={[styles.itemNumber, { color: theme.textSecondary }]}>{index + 1}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => handleRemoveItem(item.id)}
                 style={styles.deleteBtn}
               >
-                <Ionicons name="close" size={20} color="#EF4444" />
+                <Ionicons name="close" size={20} color={theme.danger} />
               </TouchableOpacity>
             </View>
 
             <View style={styles.inputGroup}>
               <TextInput
-                style={styles.itemInputLarge}
+                style={[styles.itemInputLarge, { color: theme.text, borderBottomColor: theme.border }]}
                 value={item.name}
                 onChangeText={(val) => handleUpdateItem(item.id, "name", val)}
                 placeholder="Nama Barang"
+                placeholderTextColor={theme.textMuted}
               />
             </View>
 
             <View style={styles.row}>
               <View style={[styles.inputGroup, { flex: 0.4, marginRight: 12 }]}>
-                <Text style={styles.labelTiny}>Qty</Text>
+                <Text style={[styles.labelTiny, { color: theme.textMuted }]}>Qty</Text>
                 <TextInput
-                  style={styles.itemInputSmall}
+                  style={[styles.itemInputSmall, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
                   value={item.qty}
                   onChangeText={(val) =>
                     handleUpdateItem(item.id, "qty", val.replace(/[^0-9]/g, ""))
@@ -299,9 +303,9 @@ export default function ReviewScreen() {
                 />
               </View>
               <View style={[styles.inputGroup, { flex: 1 }]}>
-                <Text style={styles.labelTiny}>Harga Satuan (Rp)</Text>
+                <Text style={[styles.labelTiny, { color: theme.textMuted }]}>Harga Satuan (Rp)</Text>
                 <TextInput
-                  style={styles.itemInputSmall}
+                  style={[styles.itemInputSmall, { backgroundColor: theme.inputBg, color: theme.text, borderColor: theme.border }]}
                   value={item.price}
                   onChangeText={(val) =>
                     handleUpdateItem(
@@ -317,15 +321,15 @@ export default function ReviewScreen() {
           </View>
         ))}
 
-        <TouchableOpacity style={styles.addItemBtn} onPress={handleAddItem}>
-          <Ionicons name="add" size={20} color="#007AFF" />
-          <Text style={styles.addItemText}>Tambah Item Manual</Text>
+        <TouchableOpacity style={[styles.addItemBtn, { backgroundColor: theme.surfaceAlt, borderColor: theme.indigo }]} onPress={handleAddItem}>
+          <Ionicons name="add" size={20} color={theme.indigo} />
+          <Text style={[styles.addItemText, { color: theme.indigo }]}>Tambah Item Manual</Text>
         </TouchableOpacity>
       </KeyboardAwareScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { backgroundColor: theme.footerBg }]}>
         <TouchableOpacity
-          style={styles.saveButton}
+          style={[styles.saveButton, { backgroundColor: theme.deepNavy }]}
           onPress={handleSaveToDatabase}
         >
           <Text style={styles.saveButtonText}>Simpan ke Database</Text>
@@ -339,7 +343,6 @@ export default function ReviewScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
   },
   header: {
     flexDirection: "row",
@@ -347,18 +350,15 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: "#F8FAFC",
     zIndex: 10,
   },
   headerTitle: {
     fontSize: 18,
     fontFamily: "SpaceGrotesk_700Bold",
-    color: "#0F172A",
   },
   backButton: {
     padding: 8,
     marginLeft: -4,
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     shadowColor: "#6366F1",
     shadowOffset: { width: 0, height: 4 },
@@ -374,7 +374,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   masterCard: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 24,
     padding: 24,
     shadowColor: "#6366F1",
@@ -398,7 +397,6 @@ const styles = StyleSheet.create({
   },
   divider: {
     height: 1,
-    backgroundColor: "#E2E8F0",
     marginVertical: 24,
   },
   sectionHeader: {
@@ -407,11 +405,9 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 20,
-    color: "#0F172A",
     letterSpacing: -0.5,
   },
   itemCard: {
-    backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,
     marginBottom: 16,
@@ -428,7 +424,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   itemNumberBox: {
-    backgroundColor: "#F1F5F9",
     width: 28,
     height: 28,
     borderRadius: 14,
@@ -438,7 +433,6 @@ const styles = StyleSheet.create({
   itemNumber: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 12,
-    color: "#64748B",
   },
   deleteBtn: {
     padding: 4,
@@ -452,32 +446,25 @@ const styles = StyleSheet.create({
   label: {
     fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 13,
-    color: "#475569",
     marginBottom: 8,
   },
   labelTiny: {
     fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 11,
-    color: "#94A3B8",
     marginBottom: 6,
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 15,
-    color: "#0F172A",
   },
   readOnlyInput: {
-    backgroundColor: "#EEF2FF",
     borderWidth: 1,
-    borderColor: "#C7D2FE",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -487,33 +474,25 @@ const styles = StyleSheet.create({
   readOnlyText: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 16,
-    color: "#1E1B4B",
   },
   itemInputLarge: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 16,
-    color: "#0F172A",
     borderBottomWidth: 1,
-    borderBottomColor: "#E2E8F0",
     paddingVertical: 8,
   },
   itemInputSmall: {
-    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 14,
-    color: "#0F172A",
   },
   dropdownTrigger: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F8FAFC",
     borderWidth: 1,
-    borderColor: "#E2E8F0",
     borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -531,28 +510,23 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 14,
-    color: "#0F172A",
   },
   addItemBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#EEF2FF",
     borderRadius: 16,
     paddingVertical: 16,
     borderStyle: "dashed",
     borderWidth: 1,
-    borderColor: "#A5B4FC",
     marginTop: 8,
   },
   addItemText: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 15,
-    color: "#4F46E5",
     marginLeft: 8,
   },
   footer: {
-    backgroundColor: "#FFFFFF",
     padding: 20,
     paddingBottom: 32,
     borderTopLeftRadius: 24,
@@ -564,7 +538,6 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   saveButton: {
-    backgroundColor: "#1E1B4B",
     borderRadius: 16,
     paddingVertical: 18,
     alignItems: "center",
@@ -577,11 +550,9 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.6)",
     justifyContent: "flex-end",
   },
   modalContent: {
-    backgroundColor: "#F8FAFC",
     borderTopLeftRadius: 32,
     borderTopRightRadius: 32,
     padding: 24,
@@ -597,7 +568,6 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontFamily: "SpaceGrotesk_700Bold",
     fontSize: 22,
-    color: "#0F172A",
   },
   modalList: {
     paddingBottom: 20,
@@ -607,7 +577,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 16,
     margin: 6,
-    backgroundColor: "#FFFFFF",
     borderRadius: 20,
     shadowColor: "#6366F1",
     shadowOffset: { width: 0, height: 2 },
@@ -626,7 +595,6 @@ const styles = StyleSheet.create({
   categoryOptionLabel: {
     fontFamily: "SpaceGrotesk_600SemiBold",
     fontSize: 12,
-    color: "#475569",
     textAlign: "center",
     textTransform: "uppercase",
     letterSpacing: 0.5,

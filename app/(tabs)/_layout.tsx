@@ -3,11 +3,13 @@ import {
   useFonts
 } from '@expo-google-fonts/space-grotesk';
 import { Ionicons } from "@expo/vector-icons";
+import { useTheme } from "@/constants/theme";
 import { Tabs } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { AlertContainer } from 'react-native-alert-queue';
 
 export default function TabLayout() {
+  const theme = useTheme();
   let [fontsLoaded] = useFonts({
     SpaceGrotesk_600SemiBold,
   });
@@ -15,12 +17,12 @@ export default function TabLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.background }]}>
       <Tabs
         screenOptions={{
-          tabBarActiveTintColor: "#4F46E5",
-          tabBarInactiveTintColor: "#94A3B8",
-          tabBarStyle: styles.tabBar,
+          tabBarActiveTintColor: theme.indigo,
+          tabBarInactiveTintColor: theme.tabInactive,
+          tabBarStyle: [styles.tabBar, { backgroundColor: theme.tabBg, borderTopColor: theme.border }],
           tabBarLabelStyle: styles.tabBarLabel,
           headerShown: false,
         }}

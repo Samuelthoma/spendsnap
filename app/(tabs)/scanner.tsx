@@ -1,3 +1,4 @@
+import { useTheme } from '@/constants/theme';
 import { useAppStore } from '@/store/useAppStore';
 import { useReceiptStore } from '@/store/useReceiptStore';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,6 +18,7 @@ import { alert } from 'react-native-alert-queue';
 
 
 export default function ScannerScreen() {
+  const theme = useTheme();
   const [permission, requestPermission] = useCameraPermissions();
   const [isProcessing, setIsProcessing] = useState(false);
   const cameraRef = useRef<any>(null);
@@ -28,14 +30,14 @@ export default function ScannerScreen() {
 
   if (!permission.granted) {
     return (
-      <View style={styles.centered}>
-        <Ionicons name="camera-outline" size={64} color="#9CA3AF" />
-        <Text style={styles.permissionText}>Kami membutuhkan akses kamera untuk memindai struk.</Text>
-        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+      <View style={[styles.centered, { backgroundColor: theme.background }]}>
+        <Ionicons name="camera-outline" size={64} color={theme.textMuted} />
+        <Text style={[styles.permissionText, { color: theme.textSecondary }]}>Kami membutuhkan akses kamera untuk memindai struk.</Text>
+        <TouchableOpacity style={[styles.permissionButton, { backgroundColor: theme.text }]} onPress={requestPermission}>
           <Text style={styles.permissionButtonText}>Izinkan Kamera</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.cancelButton} onPress={() => router.back()}>
-          <Text style={styles.cancelButtonText}>Batal</Text>
+          <Text style={[styles.cancelButtonText, { color: theme.textMuted }]}>Batal</Text>
         </TouchableOpacity>
       </View>
     );
