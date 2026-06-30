@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { alert } from 'react-native-alert-queue';
+import { alert, AlertContainer } from 'react-native-alert-queue';
 import { getCategoryVisuals } from "../constants/categories";
 import {
   deleteReceipt,
@@ -248,6 +248,7 @@ export default function DetailsScreen() {
           </View>
         </View>
       </ScrollView>
+      <AlertContainer />
     </SafeAreaView>
   );
 }

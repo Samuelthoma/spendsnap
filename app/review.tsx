@@ -13,16 +13,15 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Modal,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
-import { alert } from 'react-native-alert-queue';
+import { alert, AlertContainer } from 'react-native-alert-queue';
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -32,7 +31,6 @@ export default function ReviewScreen() {
   const [receipt, setReceipt] = useState({ merchant: "", category: "" });
   const [items, setItems] = useState<any[]>([]);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
 
   let [fontsLoaded] = useFonts({
     SpaceGrotesk_500Medium,
@@ -106,8 +104,6 @@ export default function ReviewScreen() {
       return;
     }
 
-    setIsSaving(true);
-
     try {
       const payload: ReceiptPayload = {
         merchant: receipt.merchant,
@@ -123,21 +119,18 @@ export default function ReviewScreen() {
 
       await insertReceiptWithDetails(payload);
 
-      const acknowledged = await alert.confirm({
+      await alert.show({
         title: "Tersimpan!",
         message: "Data struk berhasil ditambahkan ke riwayat Anda.",
       });
 
-      if (acknowledged) {
-        router.replace("/");
-      }
+      router.replace("/");
+
     } catch (error) {
       console.error("Failed to save receipt:", error);
       alert.error(
         new Error("Terjadi kesalahan saat menyimpan ke database lokal.")
       );
-    } finally {
-      setIsSaving(false);
     }
   };
 
@@ -335,13 +328,10 @@ export default function ReviewScreen() {
           style={styles.saveButton}
           onPress={handleSaveToDatabase}
         >
-          {isSaving ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.saveButtonText}>Simpan ke Database</Text>
-          )}
+          <Text style={styles.saveButtonText}>Simpan ke Database</Text>
         </TouchableOpacity>
       </View>
+      <AlertContainer />
     </SafeAreaView>
   );
 }

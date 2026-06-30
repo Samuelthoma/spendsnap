@@ -1,7 +1,6 @@
 import { initDb } from "@/db";
 import { Stack } from "expo-router";
 import { useEffect } from "react";
-import { AlertContainer } from 'react-native-alert-queue';
 
 export default function RootLayout() {
 
@@ -15,14 +14,13 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen
           name="review"
-          options={{ presentation: "modal", headerShown: false }}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="details"
-          options={{ presentation: "modal", headerShown: false }}
+          options={{ headerShown: false }}
         />
       </Stack>
-      <AlertContainer />
     </>
   );
 }
