@@ -5,7 +5,7 @@ import { SpaceGrotesk_500Medium, SpaceGrotesk_600SemiBold, SpaceGrotesk_700Bold,
 import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { alert } from 'react-native-alert-queue';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -33,7 +33,7 @@ export default function SplitBillScreen() {
     const addPerson = () => setParticipants([...participants, { id: `p-${Date.now()}`, name: '' }]);
     const updatePersonName = (id: string, name: string) => setParticipants(participants.map(p => p.id === id ? { ...p, name } : p));
     const removePerson = (id: string) => {
-        if (participants.length <= 1) return alert.error(new Error('Hold on! Please assign all remaining items before calculating the split.'));
+        if (participants.length <= 1) return alert.error(new Error('Setidaknya perlu satu orang untuk split.'));
         setParticipants(participants.filter(p => p.id !== id));
 
         setAssignments(prev => {
@@ -96,7 +96,18 @@ export default function SplitBillScreen() {
     return (
         <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.background }]} edges={['top']}>
             <View style={[styles.header, { backgroundColor: theme.headerBg, borderBottomColor: theme.border }]}>
-                <TouchableOpacity onPress={() => step > 1 ? setStep(step - 1) : router.back()} style={[styles.backButton, { backgroundColor: theme.surface }]}>
+                <TouchableOpacity onPress={() => {
+                    if (step === 2 && scannedItems.length > 0) {
+                        Alert.alert('Tinggalkan Split?', 'Progress pembagian item akan hilang.', [
+                            { text: 'Tetap di sini', style: 'cancel' },
+                            { text: 'Tinggalkan', style: 'destructive', onPress: () => router.back() },
+                        ]);
+                    } else if (step > 1) {
+                        setStep(step - 1);
+                    } else {
+                        router.back();
+                    }
+                }} style={[styles.backButton, { backgroundColor: theme.surface }]}>
                     <Ionicons name="arrow-back" size={24} color={theme.text} />
                 </TouchableOpacity>
                 <Text style={[styles.headerTitle, { color: theme.text }]}>Split Bill</Text>
@@ -143,6 +154,34 @@ export default function SplitBillScreen() {
                             <Text style={styles.stepBadge}>STEP 2</Text>
                             <Text style={[styles.sectionTitle, { color: theme.text }]}>Assign Items</Text>
                         </View>
+
+                        {participants.length > 0 && (
+                            <View style={[styles.participantCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                                <View style={[styles.participantHeader, { borderBottomColor: theme.border }]}>
+                                    <Ionicons name="people-outline" size={18} color={theme.indigo} />
+                                    <Text style={[styles.participantHeaderText, { color: theme.text }]}>Participants</Text>
+                                </View>
+                                {participants.map((p) => (
+                                    <View key={p.id} style={[styles.participantRow, { borderBottomColor: theme.border }]}>
+                                        <TextInput
+                                            style={[styles.participantInput, { color: theme.text, backgroundColor: theme.inputBg, borderColor: theme.border }]}
+                                            value={p.name}
+                                            onChangeText={(text) => updatePersonName(p.id, text)}
+                                            placeholder="Enter name"
+                                            placeholderTextColor={theme.textMuted}
+                                        />
+                                        <TouchableOpacity style={[styles.participantDeleteBtn, { backgroundColor: theme.dangerBg }]} onPress={() => removePerson(p.id)}>
+                                            <Ionicons name="close" size={16} color={theme.danger} />
+                                        </TouchableOpacity>
+                                    </View>
+                                ))}
+                                <TouchableOpacity style={styles.addParticipantBtn} onPress={addPerson}>
+                                    <Ionicons name="person-add-outline" size={16} color={theme.indigo} />
+                                    <Text style={[styles.addParticipantText, { color: theme.indigo }]}>Add Person</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
+
                         {scannedItems.map((item) => {
                             const totalAssigned = getAssignedTotal(item.id);
                             const isFullyAssigned = totalAssigned === item.qty;
@@ -463,6 +502,57 @@ const styles = StyleSheet.create({
         padding: 12,
         borderRadius: 12,
         borderWidth: 1,
+    },
+
+    participantCard: {
+        borderRadius: 20,
+        padding: 16,
+        marginBottom: 20,
+        borderWidth: 1,
+    },
+    participantHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        paddingBottom: 12,
+        borderBottomWidth: 1,
+        marginBottom: 8,
+    },
+    participantHeaderText: {
+        fontFamily: 'SpaceGrotesk_600SemiBold',
+        fontSize: 14,
+    },
+    participantRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 6,
+        borderBottomWidth: 1,
+    },
+    participantInput: {
+        flex: 1,
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 10,
+        fontSize: 14,
+        fontFamily: 'SpaceGrotesk_600SemiBold',
+        marginRight: 8,
+        borderWidth: 1,
+    },
+    participantDeleteBtn: {
+        padding: 8,
+        borderRadius: 20,
+    },
+    addParticipantBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 12,
+        marginTop: 8,
+        gap: 6,
+    },
+    addParticipantText: {
+        fontFamily: 'SpaceGrotesk_700Bold',
+        fontSize: 13,
     },
 
     resultCard: {
